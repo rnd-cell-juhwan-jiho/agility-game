@@ -3,14 +3,14 @@ package org.rnd.agility.game;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.rnd.agility.game.domain.dto.CountDown;
+import org.rnd.agility.game.domain.dto.DtoType;
+import org.rnd.agility.game.domain.game.GameRoomManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
-import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-
-import java.util.concurrent.ConcurrentMap;
 
 /*
 
@@ -20,34 +20,38 @@ import java.util.concurrent.ConcurrentMap;
 public class GameWebSocketHandler implements WebSocketHandler {
 
     private final ObjectMapper mapper;
-    private final ConcurrentMap<String, Sinks.Many<String>> roomSinks;  //host:room
+    private final GameRoomManager gameManager;
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
 
-        var roomSink = roomSinks.get("");
+        String roomId = "";
+
+        var game = gameManager.getGame(roomId);
 
         session.receive()
                 .doOnNext(wsm -> {
                     var msg = wsm.getPayloadAsText();
+                    String type = "";
                     try {
-                        String type = mapper.reader().readTree(msg).get("type").asText();
-
-                        switch(type){
-                            case "USER_IN":
-                            case "USER_OUT":
-                            case "GAME_BID":
-                            case "GAME_READY":
-
-                        }
-
+                        type = mapper.reader().readTree(msg).get("type").asText();
+                        game.processMessage(type, msg);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
                 }).subscribe();
 
         return session.send(
-                roomSink.asFlux().map(session::textMessage)
+                game.getChannel().asFlux().map(session::textMessage)
         );
+    }
+
+    private String mapperWrite(Object message) {
+        try{
+            return mapper.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return "ERROR";
     }
 }
