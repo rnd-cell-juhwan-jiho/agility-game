@@ -2,15 +2,11 @@ package org.rnd.agility.game.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
 
 @Getter
-@Setter
 @AllArgsConstructor
-public class GameEnd {
+public class ServerMessage {
+    String roomId;
     String type;
-    Boolean isEnd;
-    List<String> loserList;
+    String message;
 }

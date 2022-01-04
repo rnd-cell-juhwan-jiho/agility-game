@@ -9,8 +9,9 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GameEnd {
+public class UserEntrance {
+    String roomId;
     String type;
-    Boolean isEnd;
-    List<String> loserList;
+    String username;
+    List<String> userList;
 }
