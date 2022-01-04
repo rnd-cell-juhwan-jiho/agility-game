@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class UserEntrance {
+    String roomId;
     String type;
     String username;
     List<String> userList;

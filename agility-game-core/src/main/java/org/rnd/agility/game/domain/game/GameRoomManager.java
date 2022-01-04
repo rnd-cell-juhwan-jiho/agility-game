@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 public class GameRoomManager {
 
-    private final ConcurrentMap<String, GameRoom> games = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, GameRoom> games = new ConcurrentHashMap<>();    //roomId:game
     private final ObjectMapper mapper;
 
     public GameRoom getGame(String roomId){
@@ -26,7 +26,7 @@ public class GameRoomManager {
         games.put(roomId, game);
     }
 
-    public void removeGame(String host){
-        games.remove(host);
+    public void removeGame(String roomId){
+        games.remove(roomId);
     }
 }

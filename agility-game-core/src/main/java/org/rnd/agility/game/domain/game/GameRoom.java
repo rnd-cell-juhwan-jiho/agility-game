@@ -28,7 +28,7 @@ public class GameRoom {
     private String host;
     private String roomId;  //actual request parameter from client
     private ObjectMapper mapper;
-    private final ConcurrentMap<String, String> players = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Boolean> players = new ConcurrentHashMap<>();   //user:isReady
     private final AtomicInteger readyCounter = new AtomicInteger(0);
     private final AtomicReference<GameBid> lastBid = new AtomicReference<>(new GameBid());
     private final AtomicLong lastBidTime = new AtomicLong(0);
@@ -39,75 +39,84 @@ public class GameRoom {
 
     private final Sinks.Many<String> channel = Sinks.many().multicast().onBackpressureBuffer();
 
-    public int addUser(String username){
-        players.put(username, "");
-        return players.size();
-    }
-
-    public boolean readyAndCheckStart(){
-         int readyCnt = readyCounter.incrementAndGet();
-         int p = players.size();
-         if(readyCnt > p/2 && p > 2)
-             return true;
-         else
-             return false;
-    }
-
     public void processMessage(String type, String msg) throws JsonProcessingException {
         switch (type){
             case DtoType.USER_IN:
-                UserEntrance userIn = mapperRead(msg, UserEntrance.class);
-                addUser(userIn.getUsername());
-                userIn.setUserList(new ArrayList<>(this.players.keySet()));
-                channel.tryEmitNext(mapperWriteAsString(userIn));
+                handleUserIn(msg);
                 break;
             case DtoType.USER_OUT:
-                UserEntrance userOut = mapperRead(msg, UserEntrance.class);
-                readyCounter.decrementAndGet();
-                userOut.setUserList(new ArrayList<>(this.players.keySet()));
-                channel.tryEmitNext(mapperWriteAsString(userOut));
+                handleUserOut(msg);
                 break;
             case DtoType.BID:
-                //discard if isStarted.get() == false
-                GameBid newBid = mapper.readValue(msg, GameBid.class);
-                if(isStarted.get() && !isEnded.get()){
-                    String outbound = "";
-                    if(!isEnding.get()){
-                    //if no losers were set,
-                        if(newBid.getBid().equals(lastBid.get().getBid())){
-                            //first losers set
-                            isEnding.set(true);
-                            losers.add(lastBid.get().getUsername());
-                            losers.add(newBid.getUsername());
-
-                            Flux.just(0, 1, 2).zipWith(Flux.interval(Duration.ofSeconds(1)))
-                                    .doOnComplete(()->{
-                                        isEnded.set(true);
-                                        channel.tryEmitNext(mapperWriteAsString(new GameEnd(DtoType.END, true, new ArrayList<>(this.losers))));
-                                    }).subscribe();
-
-                            outbound = mapperWriteAsString(new GameEnd(DtoType.END, false, new ArrayList<>(this.losers)));
-                        }
-                        else{
-                            lastBid.set(newBid);
-                            channel.tryEmitNext(msg);
-                        }
-                    }else {
-                    //if 2 seconds countdown is ongoing,
-                        //add to losers and notify
-                        losers.add(newBid.getUsername());
-                        outbound = mapperWriteAsString(new GameEnd(DtoType.END, false, new ArrayList<>(this.losers)));
-                    }
-                    channel.tryEmitNext(outbound);
-                }
+                handleBid(msg);
                 break;
             case DtoType.READY:
-                if(readyAndCheckStart()){
-                    Flux.range(1, 10).map(n -> 11 - n)
-                            .doOnNext(n -> channel.tryEmitNext(mapperWriteAsString(new CountDown(DtoType.COUNTDOWN, n))))
-                            .doOnComplete(() -> isStarted.compareAndSet(false, true))
-                            .subscribe();
+                handleReady(msg);
+                break;
+        }
+    }
+
+    private void handleUserIn(String msg) throws JsonProcessingException{
+        UserEntrance userIn = mapperRead(msg, UserEntrance.class);
+        players.put(userIn.getUsername(), false);
+        userIn.setUserList(new ArrayList<>(this.players.keySet()));
+        channel.tryEmitNext(mapperWriteAsString(userIn));
+    }
+
+    private void handleUserOut(String msg) throws JsonProcessingException{
+        UserEntrance userOut = mapperRead(msg, UserEntrance.class);
+        if(players.get(userOut.getUsername()))
+            players.remove(userOut.getUsername());
+        userOut.setUserList(new ArrayList<>(this.players.keySet()));
+        channel.tryEmitNext(mapperWriteAsString(userOut));
+    }
+
+    public void handleBid(String msg) throws JsonProcessingException{
+        //discard if isStarted.get() == false
+        GameBid newBid = mapper.readValue(msg, GameBid.class);
+        if(isStarted.get() && !isEnded.get()){
+            String outbound = "";
+            if(!isEnding.get()){
+                //if no losers were set,
+                if(newBid.getBid().equals(lastBid.get().getBid())){
+                    //first losers set
+                    isEnding.set(true);
+                    losers.add(lastBid.get().getUsername());
+                    losers.add(newBid.getUsername());
+
+                    Flux.just(0, 1, 2).zipWith(Flux.interval(Duration.ofSeconds(1)))
+                            .doOnComplete(()->{
+                                isEnded.set(true);
+                                channel.tryEmitNext(mapperWriteAsString(new GameEnd(DtoType.END, true, new ArrayList<>(this.losers))));
+                            }).subscribe();
+
+                    outbound = mapperWriteAsString(new GameEnd(DtoType.END, false, new ArrayList<>(this.losers)));
                 }
+                else{
+                    lastBid.set(newBid);
+                    channel.tryEmitNext(msg);
+                }
+            }else {
+                //if 2 seconds countdown is ongoing,
+                //add to losers and notify
+                losers.add(newBid.getUsername());
+                outbound = mapperWriteAsString(new GameEnd(DtoType.END, false, new ArrayList<>(this.losers)));
+            }
+            channel.tryEmitNext(outbound);
+        }
+    }
+
+    private void handleReady(String msg) throws JsonProcessingException{
+        GameReady gameReady = mapperRead(msg, GameReady.class);
+        if(gameReady.getReady() && readyAndCheckStart(gameReady.getUsername())){
+            Flux.range(1, 10).map(n -> 11 - n)
+                    .doOnNext(n -> channel.tryEmitNext(mapperWriteAsString(new CountDown(DtoType.COUNTDOWN, n))))
+                    .doOnComplete(() -> isStarted.compareAndSet(false, true))
+                    .subscribe();
+        }
+        else if(!gameReady.getReady() && !this.isStarted.get()){
+            players.put(gameReady.getUsername(), false);
+            readyCounter.decrementAndGet();
         }
     }
 
@@ -122,5 +131,12 @@ public class GameRoom {
 
     public <T> T mapperRead(String json, Class<T> cls) throws JsonProcessingException {
         return mapper.readValue(json, cls);
+    }
+
+    public boolean readyAndCheckStart(String username){
+        players.put(username, true);
+        int readyCnt = readyCounter.incrementAndGet();
+        int p = players.size();
+        return readyCnt > p / 2 && p > 2;
     }
 }

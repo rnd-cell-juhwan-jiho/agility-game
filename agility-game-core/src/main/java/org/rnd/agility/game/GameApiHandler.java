@@ -25,8 +25,6 @@ public class GameApiHandler {
             gameManager.createGame(roomId);
 
         return request.bodyToMono(JoinRequest.class)
-                .flatMap(jr ->
-                        ServerResponse.ok().bodyValue(new ServerMessage(DtoType.IN_OK, "welcome"))
-                );
+                .flatMap(jr -> ServerResponse.ok().bodyValue("welcome"));
     }
 }

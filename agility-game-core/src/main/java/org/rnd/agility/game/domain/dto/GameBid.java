@@ -11,8 +11,8 @@ import java.util.Date;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GameBid {
-    String type;
     String roomId;
+    String type;
     String username;
     Date time = Date.from(Instant.now());
     Integer bid;
