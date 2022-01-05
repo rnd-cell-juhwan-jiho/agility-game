@@ -26,6 +26,10 @@ public class GameRoomManager {
         games.put(roomId, game);
     }
 
+    public boolean gameExists(String roomId){
+        return games.containsKey(roomId);
+    }
+
     public void removeGame(String roomId){
         games.remove(roomId);
     }
