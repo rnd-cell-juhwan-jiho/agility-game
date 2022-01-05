@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class NetworkConfig implements WebFluxConfigurer{
+public class HttpConfig implements WebFluxConfigurer{
 
     @Override
     public void addCorsMappings(CorsRegistry corsRegistry){

@@ -32,7 +32,8 @@ public class GameWebSocketHandler implements WebSocketHandler {
     public Mono<Void> handle(WebSocketSession session) {
 
         var queryMap = getQueryMap(session.getHandshakeInfo().getUri().getQuery());
-        var game = gameManager.getGame(queryMap.get("id"));
+        var gameId = queryMap.get("id");
+        var game = gameManager.getGame(gameId);
 
         session.receive()
                 .doOnNext(wsm -> {
@@ -48,7 +49,12 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
         return session.send(
                 game.getChannel().asFlux().map(session::textMessage)
-        );
+        ).doOnTerminate(() -> {
+            if(game.getIsEnded().get()) {
+                log.info("=== Terminating game [ {} ] ===", gameId);
+                gameManager.removeGame(gameId);
+            }
+        });
     }
 
     private Map<String, String> getQueryMap(String rawQuery){
@@ -60,12 +66,4 @@ public class GameWebSocketHandler implements WebSocketHandler {
         return queryMap;
     }
 
-    private String mapperWrite(Object message) {
-        try{
-            return mapper.writeValueAsString(message);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return "ERROR";
-    }
 }

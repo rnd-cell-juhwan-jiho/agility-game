@@ -17,14 +17,15 @@ public class GameApiHandler {
     private final GameRoomManager gameManager;
 
     public Mono<ServerResponse> join(ServerRequest request){
-        if(request.queryParam("id").isEmpty())
-            throw new RuntimeException("unknown query parameter");
-
-        var roomId = request.queryParam("id").get();
-        if(gameManager.getGame(roomId) == null)
-            gameManager.createGame(roomId);
-
-        return request.bodyToMono(JoinRequest.class)
-                .flatMap(jr -> ServerResponse.ok().bodyValue("welcome"));
+//        boolean isUrlValid = request.queryParam("id").isPresent();
+//
+//        var roomId = request.queryParam("id");
+//        if(gameManager.getGame(roomId) == null)
+//            gameManager.createGame(roomId);
+//
+//        return request.bodyToMono(JoinRequest.class)
+//                .filter( _jr ->isUrlValid)
+//                .flatMap(jr -> ServerResponse.ok().bodyValue("welcome"));
+        return ServerResponse.notFound().build();
     }
 }

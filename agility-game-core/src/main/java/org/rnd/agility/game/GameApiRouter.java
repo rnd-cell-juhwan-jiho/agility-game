@@ -15,7 +15,7 @@ public class GameApiRouter {
     @Bean
     RouterFunction<ServerResponse> route(GameApiHandler handler){
         return RouterFunctions.route()
-                .POST("/join", accept(MediaType.APPLICATION_JSON),handler::join)
+//                .POST("/join", accept(MediaType.APPLICATION_JSON),handler::join)
                 .build();
     }
 }
