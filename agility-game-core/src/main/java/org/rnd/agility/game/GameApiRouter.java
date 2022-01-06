@@ -13,9 +13,9 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class GameApiRouter {
 
     @Bean
-    RouterFunction<ServerResponse> route(GameApiHandler handler){
+    RouterFunction<ServerResponse> route(GameApiHandler apiHandler){
         return RouterFunctions.route()
-//                .POST("/join", accept(MediaType.APPLICATION_JSON),handler::join)
+                .POST("/game", accept(MediaType.APPLICATION_JSON), apiHandler::game)
                 .build();
     }
 }

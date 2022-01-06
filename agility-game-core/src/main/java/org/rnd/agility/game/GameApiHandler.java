@@ -16,7 +16,7 @@ public class GameApiHandler {
 
     private final GameRoomManager gameManager;
 
-    public Mono<ServerResponse> join(ServerRequest request){
+    public Mono<ServerResponse> game(ServerRequest request){
 //        boolean isUrlValid = request.queryParam("id").isPresent();
 //
 //        var roomId = request.queryParam("id");
