@@ -5,8 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ServerMessage {
-//    private String roomId;
-    private String type;
-    private String message;
+public class GameCountdown {
+    private final String type;
+    private final Integer count;
 }

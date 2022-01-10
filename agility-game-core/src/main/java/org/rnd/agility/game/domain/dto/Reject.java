@@ -5,7 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CountDown {
-    String type;
-    Integer count;
+public class Reject {
+    private String type;
 }

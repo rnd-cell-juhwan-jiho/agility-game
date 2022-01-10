@@ -11,17 +11,17 @@ import java.util.concurrent.ConcurrentMap;
 @Component
 @Getter
 @RequiredArgsConstructor
-public class GameRoomManager {
+public class GameManager {
 
-    private final ConcurrentMap<String, GameRoom> games = new ConcurrentHashMap<>();    //roomId:game
+    private final ConcurrentMap<String, Game> games = new ConcurrentHashMap<>();    //roomId:game
     private final ObjectMapper mapper;
 
-    public GameRoom getGame(String roomId){
+    public Game getGame(String roomId){
         return games.get(roomId);
     }
 
     public void createGame(String roomId){
-        var game = new GameRoom();
+        var game = new Game();
         game.setMapper(this.mapper);
         games.put(roomId, game);
     }

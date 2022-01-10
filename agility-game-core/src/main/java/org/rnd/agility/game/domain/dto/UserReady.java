@@ -1,12 +1,13 @@
 package org.rnd.agility.game.domain.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-@AllArgsConstructor
-public class ServerMessage {
+@Setter
+public class UserReady {
 //    private String roomId;
     private String type;
-    private String message;
+    private String username;
+    private Boolean ready;
 }

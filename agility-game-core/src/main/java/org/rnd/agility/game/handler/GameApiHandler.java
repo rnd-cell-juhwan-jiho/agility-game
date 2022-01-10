@@ -1,10 +1,7 @@
-package org.rnd.agility.game;
+package org.rnd.agility.game.handler;
 
 import lombok.RequiredArgsConstructor;
-import org.rnd.agility.game.domain.dto.DtoType;
-import org.rnd.agility.game.domain.dto.JoinRequest;
-import org.rnd.agility.game.domain.dto.ServerMessage;
-import org.rnd.agility.game.domain.game.GameRoomManager;
+import org.rnd.agility.game.domain.game.GameManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -14,7 +11,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class GameApiHandler {
 
-    private final GameRoomManager gameManager;
+    private final GameManager gameManager;
 
     public Mono<ServerResponse> game(ServerRequest request){
 //        boolean isUrlValid = request.queryParam("id").isPresent();

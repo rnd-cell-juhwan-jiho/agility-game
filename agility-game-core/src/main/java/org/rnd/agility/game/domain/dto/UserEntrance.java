@@ -5,13 +5,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @AllArgsConstructor
 public class UserEntrance {
-    String roomId;
-    String type;
-    String username;
-    List<String> userList;
+//    private String roomId;
+    private String type;
+    private String username;
+    private Set<String> users;
+    private Set<String> usersReady;
 }
