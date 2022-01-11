@@ -27,6 +27,8 @@ public class Game {
     private final AtomicLong lastBidTime = new AtomicLong(0);
     private final Vector<String> losers = new Vector<>();
 
+    private final String rejectResponse = this.mapperWriteAsString(new Reject(DtoType.REJECT));
+
     private final AtomicReference<GameStatus> status = new AtomicReference<>(GameStatus.VOTING);
 
     private final Sinks.Many<String> channel = Sinks.many().multicast().onBackpressureBuffer();
@@ -51,7 +53,7 @@ public class Game {
     private void handleUserIn(String inbound) throws JsonProcessingException {
         UserEntrance userIn = mapperRead(inbound, UserEntrance.class);
 
-        if (this.status.get() == GameStatus.VOTING) {
+        if (this.isVoting()) {
             this.users.add(userIn.getUsername());
 
             userIn.setUsers(this.users);
@@ -60,6 +62,8 @@ public class Game {
             String outbound = mapperWriteAsString(userIn);
             this.channel.tryEmitNext(outbound);
         }
+        else
+            this.channel.tryEmitNext(rejectResponse);
     }
 
     private void handleUserOut(String inbound) throws JsonProcessingException {
@@ -93,7 +97,7 @@ public class Game {
                                 }
                         );
 
-                String outbound = mapperWriteAsString(new GameEnding(DtoType.END, false, new ArrayList<>(this.losers)));
+                String outbound = mapperWriteAsString(new GameEnding( DtoType.END, false, new ArrayList<>(this.losers)));
                 this.channel.tryEmitNext(outbound);
             } else {
                 this.lastBid.set(newBid);
@@ -108,6 +112,8 @@ public class Game {
             String outbound = mapperWriteAsString(new GameEnding(DtoType.END, false, new ArrayList<>(this.losers)));
             this.channel.tryEmitNext(outbound);
         }
+        else
+            this.channel.tryEmitNext(rejectResponse);
     }
 
     private void handleReady(String inbound) throws JsonProcessingException {
@@ -116,19 +122,24 @@ public class Game {
             if (userReady.getReady() && isCountdownAfterReady(userReady.getUsername())) {
                 this.status.set(GameStatus.COUNTDOWN);
                 Flux.range(0, 10).map(n -> 10 - n)
-                        .doOnNext(n -> channel.tryEmitNext(mapperWriteAsString(new GameCountdown(DtoType.COUNTDOWN, n))))
-                        .doOnComplete(() -> this.status.compareAndSet(GameStatus.COUNTDOWN, GameStatus.RUNNING))
-                        .subscribe();
+                        .subscribe(
+                                n -> channel.tryEmitNext(mapperWriteAsString(new GameCountdown(DtoType.COUNTDOWN, n))),
+                                Throwable::printStackTrace,
+                                () -> this.status.compareAndSet(GameStatus.COUNTDOWN, GameStatus.RUNNING)
+                        );
             } else if (!userReady.getReady()) {
                 this.usersReady.remove(userReady.getUsername());
             }
 
-            channel.tryEmitNext(inbound);
+            this.channel.tryEmitNext(inbound);
         }
+        else
+            this.channel.tryEmitNext(rejectResponse);
     }
 
     private String mapperWriteAsString(Object obj) {
         try {
+            assert this.mapper != null;
             return this.mapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             e.printStackTrace();

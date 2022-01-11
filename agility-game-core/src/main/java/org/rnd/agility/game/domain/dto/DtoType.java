@@ -1,7 +1,6 @@
 package org.rnd.agility.game.domain.dto;
 
 public abstract class DtoType {
-    public static final String CHAT = "CHAT";
     public static final String BID = "BID";
     public static final String END = "END";
     public static final String READY = "READY";
@@ -11,4 +10,7 @@ public abstract class DtoType {
     //s->c only
     public static final String COUNTDOWN = "COUNTDOWN";
     public static final String REJECT = "REJECT";
+
+    //to-be added
+    public static final String CHAT = "CHAT";
 }

@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class GameEnding {
-    private String type;
+    private String type = DtoType.END;
     private Boolean isTerminating;
     private List<String> loserList;
 }

@@ -12,7 +12,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GameBid {
 //    private String roomId;
-    private String type;
+    private String type = DtoType.BID;
     private String username;
     private Date time = Date.from(Instant.now());
     private Integer bid;
