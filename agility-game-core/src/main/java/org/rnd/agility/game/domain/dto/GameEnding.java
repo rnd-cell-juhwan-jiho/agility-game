@@ -9,8 +9,8 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GameEnd {
-    String type;
-    Boolean isEnd;
-    List<String> loserList;
+public class GameEnding {
+    private String type = DtoType.END;
+    private Boolean isTerminating;
+    private List<String> loserList;
 }

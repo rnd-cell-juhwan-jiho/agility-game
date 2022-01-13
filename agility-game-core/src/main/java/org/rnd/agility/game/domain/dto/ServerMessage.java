@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ServerMessage {
-    String roomId;
-    String type;
-    String message;
+//    private String roomId;
+    private String type;
+    private String message;
 }
