@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
-import org.rnd.agility.game.domain.dto.*;
+import org.rnd.agility.game.domain.game.dto.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -52,7 +52,6 @@ public class Game {
 
     private void handleUserIn(String inbound) throws JsonProcessingException {
         UserEntrance userIn = mapperRead(inbound, UserEntrance.class);
-
         if (this.isVoting()) {
             this.users.add(userIn.getUsername());
 
