@@ -23,7 +23,7 @@ function App() {
                 <Games/>
               </RequireAuth>
             }/>
-            <Route path="/game" element={
+            <Route path="/game/:gameId" element={
               <RequireAuth>
                 <Game/>
               </RequireAuth>

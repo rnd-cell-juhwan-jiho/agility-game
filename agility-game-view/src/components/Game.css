@@ -1,0 +1,13 @@
+.GameContainer {
+    display: flex;
+}
+
+.Game {
+    background-color:wheat;
+    width: 80vw;
+}
+
+.UserList {
+    background-color:thistle;
+    width: 20vw;
+}
