@@ -182,6 +182,18 @@ public class Game {
     }
 
     public enum GameStatus {
-        VOTING, COUNTDOWN, RUNNING, ENDING, TERMINATING
+        VOTING("VOTING"),
+        COUNTDOWN("COUNTDOWN"),
+        RUNNING("RUNNING"),
+        ENDING("ENDING"),
+        TERMINATING("TERMINATING");
+
+        private final String value;
+        GameStatus(String s){
+            this.value = s;
+        }
+        public String getValue(){
+            return this.value;
+        }
     }
 }

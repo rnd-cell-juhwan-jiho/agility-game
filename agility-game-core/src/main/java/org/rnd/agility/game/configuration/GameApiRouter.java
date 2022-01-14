@@ -15,12 +15,10 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 @RequiredArgsConstructor
 public class GameApiRouter {
 
-    private final
-
     @Bean
     RouterFunction<ServerResponse> route(GameApiHandler apiHandler){
         return RouterFunctions.route()
-                .GET("/games", accept(MediaType.APPLICATION_JSON), apiHandler::games)
+                .GET("/games", accept(MediaType.APPLICATION_JSON), apiHandler::getGames)
                 .build();
     }
 }
