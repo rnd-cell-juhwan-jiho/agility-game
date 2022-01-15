@@ -10,7 +10,7 @@ const GameThumbnail = (props) => {
 
     return (
         <div className="GameThumbnail" onClick={handleClick}>
-            {props.game.game_id} {props.game.status} {props.game.size}
+            Game id:{props.game.game_id}, status:{props.game.status}, size:{props.game.size}
         </div>
     )
 }
