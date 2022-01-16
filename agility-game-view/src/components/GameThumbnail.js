@@ -1,11 +1,18 @@
 import React from 'react'
 
-const Game = () => {
+const GameThumbnail = (props) => {
+
+    const handleClick = (e) => {
+        console.log(e);
+
+        console.log("handleClick()...")
+    }
+
     return (
-        <div className="Game">
-            
+        <div className="GameThumbnail" onClick={handleClick}>
+            {props.game.game_id} {props.game.status} {props.game.size}
         </div>
     )
 }
 
-export default Game
+export default GameThumbnail
