@@ -1,4 +1,12 @@
 import {useState, useEffect} from 'react'
+import GameThumbnail from './GameThumbnail'
+import './Games.css'
+
+const test = [{
+    "game_id": "123",
+    "status": "VOTING",
+    "size": 0
+}]
 
 const Games = (props) => {
 
@@ -27,13 +35,19 @@ const Games = (props) => {
         })
     }
 
+    const fetchGamesTest = (e) => {
+        e.preventDefault()
+
+        setGames(() => [...games, ...test]);
+    }
+
     return (
         <div className='Games'>
             <p>This is games list.</p>
-            <button onClick={fetchGames}>Fetch Games</button>
+            <button onClick={fetchGamesTest}>Update Games List</button>
             {
                 games.map((game, index) =>
-                    <p className="Game" key={index}>{game}</p>
+                    <GameThumbnail key={index} game={game}/>
                 )
             }
         </div>

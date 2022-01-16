@@ -10,7 +10,7 @@ const Header = (props) => {
         <div className="Header">
             <p>HEADER</p>
             {username
-                ? <p>{username}</p>
+                ? <p>Welcome, {username}</p>
                 : <p>You are not logged in.</p>
             }
         </div>

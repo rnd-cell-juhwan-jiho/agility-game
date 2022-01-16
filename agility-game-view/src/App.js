@@ -5,14 +5,8 @@ import Login from './components/Login'
 import Games from './components/Games'
 import AuthProvider from './AuthProvider'
 import RequireAuth from './RequireAuth'
-// import {useContext} from 'react'
-// import {AuthContext} from './AuthProvider'
 
 function App() {
-
-  console.log("App()..")
-
-  // const {username} = useContext(AuthContext)
 
   return (
     <AuthProvider>

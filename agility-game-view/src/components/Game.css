@@ -1,0 +1,22 @@
+.GameContainer {
+    display: flex;
+}
+
+.Game {
+    background-color:wheat;
+    width: 80vw;
+    display: flex;
+}
+
+.Chip {
+    height: 50px;
+    width: 50px;
+    background-color: darkcyan;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.UserList {
+    background-color:thistle;
+    width: 20vw;
+}

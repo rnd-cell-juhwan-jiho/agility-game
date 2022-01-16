@@ -1,0 +1,12 @@
+.Games{
+    box-sizing: border-box;
+    background-color: violet;
+}
+
+.GameThumbnail{
+    background-color: yellow;
+    border: 1px solid #AAA;
+    border-radius: 2px;
+    margin: 5px;
+    box-sizing: border-box;
+}
