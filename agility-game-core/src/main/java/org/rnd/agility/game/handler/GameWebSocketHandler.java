@@ -32,13 +32,13 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
         var queryMap = getQueryMap(session.getHandshakeInfo().getUri().getQuery());
         var gameId = queryMap.get("id");
-        var game = gameManager.getGame(gameId);
+        var game = this.gameManager.getGame(gameId);
 
         Consumer<WebSocketMessage> onNextConsumer = (wsm) -> {
             var msg = wsm.getPayloadAsText();
             log.info(msg);
             try {
-                String type = mapper.reader().readTree(msg).get("type").asText();
+                String type = this.mapper.reader().readTree(msg).get("type").asText();
                 game.processMessage(type, msg);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
@@ -46,14 +46,14 @@ public class GameWebSocketHandler implements WebSocketHandler {
         };
 
         Runnable onCompleteConsumer = () -> {
-            if(game.isTerminating() && game.getUsers().isEmpty()) {
-                //when game ends and last player exits
+            if(game.getUsers().isEmpty()) {
+                //when last player exits
                 log.info("=== Terminating game [ {} ] ===", gameId);
-                gameManager.removeGame(gameId);
+                this.gameManager.removeGame(gameId);
             }
             else if(game.isCountingDown() && game.getUsers().size() < 3){
                 log.info("=== Cancelling game [ {} ] ===", gameId);
-                game.cancelGame();
+                game.cancelCountdown();
             }
         };
 

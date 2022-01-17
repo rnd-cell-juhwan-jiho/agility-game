@@ -6,7 +6,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class UserJoinRequest {
-//    private String roomId;
     private String type;
     private String username;
 }

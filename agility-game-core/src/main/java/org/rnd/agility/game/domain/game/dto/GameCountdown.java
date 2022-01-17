@@ -8,4 +8,5 @@ import lombok.Getter;
 public class GameCountdown {
     private String type = DtoType.COUNTDOWN;
     private Integer count;
+    private Boolean cancel;
 }

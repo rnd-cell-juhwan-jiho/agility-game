@@ -10,7 +10,6 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 public class UserEntrance {
-//    private String roomId;
     private String type;
     private String username;
     private Set<String> users;
