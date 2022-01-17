@@ -33,8 +33,10 @@ public class GameHandshakeWebSocketService extends HandshakeWebSocketService {
         //if game does not exist, create new game
         if(!gameManager.gameExists(gameId))
             gameManager.createGame(gameId);
-        else if(!gameManager.getGame(gameId).isVoting())
-            return Mono.error(new IllegalAccessException("Unable to join this game right now."));
+        else{
+            if(!gameManager.getGame(gameId).isVoting())
+                return Mono.error(new IllegalAccessException("Unable to join this game right now."));
+        }
 
         return super.handleRequest(exchange, handler);
     }

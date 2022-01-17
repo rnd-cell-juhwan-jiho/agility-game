@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 public class GameManager {
 
-    private final ConcurrentMap<String, Game> games = new ConcurrentHashMap<>();    //roomId:game
+    private final ConcurrentMap<String, Game> games = new ConcurrentHashMap<>();    //gameId:game
     private final ObjectMapper mapper;
 
     public Game getGame(String roomId){
