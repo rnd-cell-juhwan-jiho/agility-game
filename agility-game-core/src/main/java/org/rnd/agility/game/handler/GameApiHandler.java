@@ -24,6 +24,6 @@ public class GameApiHandler {
                         .map(GameThumbnail::new)
                         .collect(Collectors.toList())
         );
-        return ServerResponse.ok().body(games, Games.class);
+        return ServerResponse.ok().bodyValue(games);
     }
 }

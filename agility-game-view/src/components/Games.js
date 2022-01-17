@@ -18,12 +18,10 @@ const Games = (props) => {
     const {playing, setPlaying} = useContext(GameContext)
 
     useEffect(() => {
-        // fetchGames()
+        fetchGames()
     })
 
     const fetchGames = (e) => {
-        e.preventDefault()
-        
         fetch(url, {
             method: "GET",
             headers: {
@@ -39,13 +37,11 @@ const Games = (props) => {
         })
     }
 
-    const fetchGamesTest = e => {
-        e.preventDefault()
-
+    const fetchGamesTest = () => {
         setGames(() => [...games, ...test]);
     }
 
-    const handleJoin = e => {
+    const handleSubmit = e => {
         e.preventDefault()
 
         navigate("/game/"+e.currentTarget.gameIdInput.value)
@@ -54,12 +50,12 @@ const Games = (props) => {
     return (
         <div className='Games'>
             <p>This is games list.</p>
-            <button onClick={fetchGamesTest}>Update Games List</button>
-            <form onSubmit={handleJoin}>
+            <button onClick={fetchGames}>Update Games List</button>
+            <form onSubmit={handleSubmit}>
                 <input type="text" name="gameIdInput"/>
                 <input type="submit" value="Join/Create Game"/>
             </form>
-            {games.map((game, index) =>
+            {games && games.map((game, index) =>
                 <GameThumbnail key={index} game={game}/>
             )}
         </div>
