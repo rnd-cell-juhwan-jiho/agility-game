@@ -21,10 +21,10 @@ const Game = () => {
     const [submitBid, setSubmitBid] = useState(1)
 
     useEffect(() => {
-        if(ws !== null)
+        if(webSocket !== null)
             return
 
-        let url = "ws://localhost:8080/" + gameId
+        let url = "ws://localhost:8080/game?id=" + gameId
         const ws = new WebSocket(url)
 
         ws.onopen = e => {
@@ -102,7 +102,7 @@ const Game = () => {
     }
 
     const handleBid = (msg) => {
-        if(msg.bid >= submidBid)
+        if(msg.bid >= submitBid)
             setSubmitBid(msg.bid)
         setCurrentBid(msg.bid)
 
@@ -128,7 +128,7 @@ const Game = () => {
         }
     }
 
-    const submitBid = (e) => {
+    const sendSubmitBid = (e) => {
         e.preventDefault()
 
         //1) submit submitBid
@@ -148,7 +148,7 @@ const Game = () => {
                 <div className="Bid">
                     <div>current bid: {currentBid}</div>
                     <div>next bid: {submitBid}</div>
-                    <button onClick={submitBid}>Submit Next Bid</button>
+                    <button onClick={sendSubmitBid}>Submit Next Bid</button>
                 </div>
                 <div className="ChipContainer">
                     {status === GameStatus.COUNTDOWN && 

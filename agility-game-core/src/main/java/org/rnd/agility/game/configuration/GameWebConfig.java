@@ -27,7 +27,7 @@ public class GameWebConfig implements WebFluxConfigurer{
     public void addCorsMappings(CorsRegistry corsRegistry){
         corsRegistry.addMapping("/**")
                 .allowedOrigins("http://localhost:3000")
-                .allowedMethods("POST");
+                .allowedMethods("GET");
     }
 
     @Bean

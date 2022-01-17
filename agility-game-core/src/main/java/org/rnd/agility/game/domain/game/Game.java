@@ -30,8 +30,6 @@ public class Game {
     private final AtomicLong lastBidTime = new AtomicLong(0);
     private final Vector<String> losers = new Vector<>();
 
-    private final String rejectResponse = this.mapperWriteAsString(new Reject(DtoType.REJECT));
-
     private final AtomicReference<GameStatus> status = new AtomicReference<>(GameStatus.VOTING);
 
     private final Sinks.Many<String> channel = Sinks.many().multicast().onBackpressureBuffer();
@@ -63,7 +61,7 @@ public class Game {
 
             this.channel.tryEmitNext(inbound);
         } else
-            this.channel.tryEmitNext(rejectResponse);
+            this.channel.tryEmitNext(this.mapperWriteAsString(new Reject(DtoType.REJECT)));
     }
 
     private void handleUserOut(String inbound) throws JsonProcessingException {
@@ -116,7 +114,7 @@ public class Game {
             String outbound = mapperWriteAsString(new GameEnding(DtoType.END, false, new ArrayList<>(this.losers)));
             this.channel.tryEmitNext(outbound);
         } else
-            this.channel.tryEmitNext(rejectResponse);
+            this.channel.tryEmitNext(this.mapperWriteAsString(new Reject(DtoType.REJECT)));
     }
 
     private void handleReady(String inbound) throws JsonProcessingException {
@@ -132,7 +130,7 @@ public class Game {
 
             this.channel.tryEmitNext(inbound);
         } else
-            this.channel.tryEmitNext(rejectResponse);
+            this.channel.tryEmitNext(this.mapperWriteAsString(new Reject(DtoType.REJECT)));
     }
 
     private String mapperWriteAsString(Object obj) {
