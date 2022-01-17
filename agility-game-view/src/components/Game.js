@@ -63,6 +63,9 @@ const Game = () => {
                 case MessageType.END:
                     handleEnd(msg)
                     break
+                case MessageType.CANCEL:
+                    handleCancel()
+                    break
             }
         }
 
@@ -141,6 +144,10 @@ const Game = () => {
         }
     }
 
+    const handleCancel = () => {
+        setStatus(GameStatus.VOTING)
+    }
+
     const sendSubmitBid = (e) => {
         e.preventDefault()
 
@@ -167,7 +174,7 @@ const Game = () => {
                     {status === GameStatus.COUNTDOWN && 
                         <div className="Countdown">{count}</div>
                     }
-                    {users.map((user, idx) => {<div className="Chip" key={idx}>{user.username}</div>})}
+                    {users.map((user, idx) => <div className="Chip" key={idx}>{user.username}</div>)}
                 </div>
             </div>
             <UserList users={users}/>

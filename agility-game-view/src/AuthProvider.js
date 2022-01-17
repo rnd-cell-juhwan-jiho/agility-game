@@ -7,7 +7,7 @@ const AuthProvider = (props) => {
     const [username, setUsername] = useState(null)
 
     return (
-        <AuthContext.Provider value={{username: username, setUsername: setUsername}}>
+        <AuthContext.Provider value={{username, setUsername}}>
             {props.children}
         </AuthContext.Provider>
     )
