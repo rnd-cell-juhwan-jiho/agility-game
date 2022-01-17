@@ -14,5 +14,5 @@ public class GameBid {
     private String type = DtoType.BID;
     private String username;
     private Date time = Date.from(Instant.now());
-    private Integer bid;
+    private Integer bid = 0;
 }

@@ -66,13 +66,16 @@ public class Game {
 
     private void handleUserOut(String inbound) throws JsonProcessingException {
         UserEntrance userOut = mapperRead(inbound, UserEntrance.class);
+        var wasReady = this.users.get(userOut.getUsername());
         this.users.remove(userOut.getUsername());
 
-        var wasReady = this.users.get(userOut.getUsername());
         if (wasReady) {
             var newReadyCnt = this.readyCnt.decrementAndGet();
-            if(this.isCountingDown() && newReadyCnt < users.size()/2)
+            if (this.isCountingDown() && newReadyCnt < users.size() / 2)
                 this.cancelCountdown();
+        }
+        else if(this.isRunning() && this.users.size() < 3){
+            this.cancelRunning(userOut.getUsername());
         }
 
         this.channel.tryEmitNext(inbound);
@@ -163,6 +166,18 @@ public class Game {
 
     public void cancelCountdown() {
         this.countdownSubs.get().dispose();
+    }
+
+    //triggered ONLY by USER_OUT
+    private void cancelRunning(String username){
+        this.status.compareAndSet(GameStatus.RUNNING, GameStatus.VOTING);
+        this.readyCnt.set(0);
+        for(var entry: this.users.entrySet())
+            entry.setValue(false);
+        this.lastBidTime.set(0);
+        this.lastBid.set(new GameBid());
+        String outbound = mapperWriteAsString(new UserEntrance(DtoType.USER_OUT, username, true));
+        this.channel.tryEmitNext(outbound);
     }
 
     public boolean isCountdownAfterReady(String username, Boolean ready) {
