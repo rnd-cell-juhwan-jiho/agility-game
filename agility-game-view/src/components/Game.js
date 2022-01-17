@@ -1,17 +1,22 @@
 import React, {useState, useEffect, useContext} from 'react'
 import GameStatus from './GameStatus'
 import {AuthContext} from '../AuthProvider'
-import {useParams} from 'react-router-dom'
+import {useParams, useNavigate} from 'react-router-dom'
 import './Game.css'
 import MessageType from './MessageType'
 import {timer} from 'rxjs'
+import UserList from './UserList'
+import LoserList from './LoserList'
+
 
 const Game = () => {
 
+    const navigate = useNavigate()
     const {gameId} = useParams()
     const {username} = useContext(AuthContext)
     const [webSocket, setWebSocket] = useState(null)
     const [users, setUsers] = useState([])
+    const [losers, setLosers] = useState([])
     const [status, setStatus] = useState(GameStatus.VOTING)
     const [count, setCount] = useState(-1)  //countdown
 
@@ -58,15 +63,20 @@ const Game = () => {
                 case MessageType.END:
                     handleEnd(msg)
                     break
+                case MessageType.CANCEL:
+                    handleCancel()
+                    break
             }
         }
 
         ws.onclose = e => {
             console.log(e)
+            navigate(-1)
         }
 
         ws.onerror = err => {
             console.log(err.message)
+            navigate(-1)
         }
     })
 
@@ -122,10 +132,20 @@ const Game = () => {
     }
 
     const handleEnd = (msg) => {
+        setLosers(msg.losers)
         if(msg.terminating){
             if(status !== GameStatus.TERMINATING)
                 setStatus(GameStatus.TERMINATING)
         }
+        else{
+            if(status !== GameStatus.ENDING)
+                setStatus(GameStatus.ENDING)
+            
+        }
+    }
+
+    const handleCancel = () => {
+        setStatus(GameStatus.VOTING)
     }
 
     const sendSubmitBid = (e) => {
@@ -150,20 +170,15 @@ const Game = () => {
                     <div>next bid: {submitBid}</div>
                     <button onClick={sendSubmitBid}>Submit Next Bid</button>
                 </div>
-                <div className="ChipContainer">
+                <div className="ChipsContainer">
                     {status === GameStatus.COUNTDOWN && 
                         <div className="Countdown">{count}</div>
                     }
-                    {users.map((user, idx) => {
-                        {<div className="Chip" key={idx}>{user.username}</div>}
-                    })}
+                    {users.map((user, idx) => <div className="Chip" key={idx}>{user.username}</div>)}
                 </div>
             </div>
-            <div className="UserList">
-                {users.map((user, idx) => 
-                    {<div className="User" key={idx}>{user}</div>}
-                )}
-            </div>
+            <UserList users={users}/>
+            <LoserList losers={losers}/>
         </div>
     )
 }
