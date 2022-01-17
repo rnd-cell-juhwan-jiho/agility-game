@@ -12,6 +12,5 @@ import java.util.Set;
 public class UserEntrance {
     private String type;
     private String username;
-    private Set<String> users;
-    private Set<String> usersReady;
+    private Boolean cancel = false;
 }

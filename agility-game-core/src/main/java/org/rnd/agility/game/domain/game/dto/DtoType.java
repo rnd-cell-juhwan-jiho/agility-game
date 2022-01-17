@@ -1,6 +1,7 @@
 package org.rnd.agility.game.domain.game.dto;
 
 public abstract class DtoType {
+    public static final String INIT = "INIT";
     public static final String BID = "BID";
     public static final String END = "END";
     public static final String READY = "READY";

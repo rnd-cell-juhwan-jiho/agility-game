@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rnd.agility.game.domain.game.GameManager;
+import org.rnd.agility.game.domain.game.dto.DtoType;
+import org.rnd.agility.game.domain.game.dto.Init;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
@@ -14,6 +16,7 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /*
@@ -26,6 +29,7 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
     private final ObjectMapper mapper;
     private final GameManager gameManager;
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
@@ -33,6 +37,9 @@ public class GameWebSocketHandler implements WebSocketHandler {
         var queryMap = getQueryMap(session.getHandshakeInfo().getUri().getQuery());
         var gameId = queryMap.get("id");
         var game = this.gameManager.getGame(gameId);
+
+        HashMap<String, Boolean> userMap = new HashMap<>(game.getUsers());
+        Mono<String> initialMessage = Mono.just(mapperWriteAsString(new Init(DtoType.INIT, userMap)));
 
         Consumer<WebSocketMessage> onNextConsumer = (wsm) -> {
             var msg = wsm.getPayloadAsText();
@@ -65,7 +72,9 @@ public class GameWebSocketHandler implements WebSocketHandler {
                 );
 
         return session.send(
-                game.getChannel().asFlux().map(session::textMessage)
+                initialMessage
+                        .concatWith(game.getChannel().asFlux())
+                        .map(session::textMessage)
         );
     }
 
@@ -76,6 +85,16 @@ public class GameWebSocketHandler implements WebSocketHandler {
             queryMap.put(str.substring(0, idx), str.substring(idx+1));
         });
         return queryMap;
+    }
+
+    private String mapperWriteAsString(Object obj) {
+        try {
+            assert this.mapper != null;
+            return this.mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return "ERROR";
     }
 
 }
