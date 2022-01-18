@@ -22,7 +22,7 @@ const Game = () => {
 
     const [bidTimer$, _] = useState(timer(1000))
     const [timerSubs, setTimerSubs] = useState(null)
-    const [currentBid, setCurrentBid] = useState(0)
+    const [lastBid, setLastBid] = useState(0)
     const [submitBid, setSubmitBid] = useState(1)
 
     useEffect(() => {
@@ -63,9 +63,6 @@ const Game = () => {
                 case MessageType.END:
                     handleEnd(msg)
                     break
-                case MessageType.CANCEL:
-                    handleCancel()
-                    break
             }
         }
 
@@ -79,6 +76,16 @@ const Game = () => {
             navigate(-1)
         }
     })
+
+    //reset game if game cancels at GameStatus.RUNNING
+    useEffect(() => {
+        if(status !== GameStatus.VOTING)
+            return
+
+        setCount(-1)
+        setLastBid(0)
+        setSubmitBid(1)
+    }, [status])
 
     const handleInit = (msg) => {
         setUsers(msg.users)
@@ -114,7 +121,7 @@ const Game = () => {
     const handleBid = (msg) => {
         if(msg.bid >= submitBid)
             setSubmitBid(msg.bid)
-        setCurrentBid(msg.bid)
+        setLastBid(msg.bid)
 
         if(timerSubs !== null){
             timerSubs.unsubscribe()
@@ -132,6 +139,9 @@ const Game = () => {
     }
 
     const handleEnd = (msg) => {
+        if(msg.cancel)
+            handleCancel()
+
         setLosers(msg.losers)
         if(msg.terminating){
             if(status !== GameStatus.TERMINATING)
@@ -151,6 +161,9 @@ const Game = () => {
     const sendSubmitBid = (e) => {
         e.preventDefault()
 
+        if(status !== GameStatus.RUNNING && status !== GameStatus.ENDING)
+            return
+
         //1) submit submitBid
         webSocket.send(JSON.stringify({
             type: MessageType.BID,
@@ -166,7 +179,7 @@ const Game = () => {
         <div className="GameContainer">
             <div className="Game">
                 <div className="Bid">
-                    <div>current bid: {currentBid}</div>
+                    <div>last bid: {lastBid}</div>
                     <div>next bid: {submitBid}</div>
                     <button onClick={sendSubmitBid}>Submit Next Bid</button>
                 </div>
