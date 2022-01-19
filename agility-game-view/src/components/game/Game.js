@@ -7,6 +7,7 @@ import MessageType from './MessageType'
 import {timer} from 'rxjs'
 import UserList from './UserList'
 import LoserList from './LoserList'
+import Chip from './Chip'
 
 const Game = () => {
 
@@ -20,6 +21,8 @@ const Game = () => {
     const [status, setStatus] = useState(GameStatus.VOTING)
     const [count, setCount] = useState(-1)  //countdown
     const [lost, setLost] = useState(false)
+
+    const [chips, setChips] = useState({})
 
     const [bidTimer$, _] = useState(timer(1000))
     const [timerSubs, setTimerSubs] = useState(null)
@@ -108,6 +111,12 @@ const Game = () => {
         setSubmitBid(1)
     }, [status])
 
+    useEffect(() => {
+        let newChips = {}
+        users.forEach(user => newChips[user.username] = false)
+        setChips(newChips)
+    }, [users])
+
     const handleInit = (msg) => {
         setUsers(prev => [...prev, ...msg.users])
     }
@@ -148,6 +157,8 @@ const Game = () => {
             setSubmitBid(msg.bid)
         setLastBid(msg.bid)
 
+        animateChip(msg.username)
+
         if(timerSubs !== null){
             timerSubs.unsubscribe()
             setTimerSubs(null)
@@ -163,11 +174,19 @@ const Game = () => {
         }))
     }
 
+    const animateChip = (user) => {        
+        let newChips = JSON.parse(JSON.stringify(chips))
+        newChips[user] = true
+        setChips(newChips)
+    }
+
     const handleEnd = (msg) => {
         if(msg.cancel)
             handleCancel()
 
         setLosers(msg.losers)
+        if(username in msg.losers)
+            setLost(true)
         if(msg.terminating){
             if(status !== GameStatus.TERMINATING)
                 setStatus(GameStatus.TERMINATING)
@@ -213,31 +232,40 @@ const Game = () => {
     }
 
     return (
-        <div className="GameContainer">
-            <div className="GameLeftContainer">
-                { (status === GameStatus.VOTING || status === GameStatus.COUNTDOWN) &&
-                    <button className="ReadyButton" onClick={sendReady}>
-                        {nextReady ? <span>Ready</span> : <span>Cancel Ready</span>}
-                    </button>
-                }
-                <div className="GameRunning">
-                    {(status !== GameStatus.RUNNING && status !== GameStatus.ENDING) && <div className="Curtain"/>}
-                    <div className="Bid">
-                        <div>Last Bid: {lastBid}</div>
-                        <div>Next Bid: {submitBid}</div>
-                        <button onClick={sendNextBid}>Submit Next Bid</button>
-                    </div>
-                    <div className="ChipsContainer">
-                        {status === GameStatus.COUNTDOWN && 
-                            <div className="Countdown">{count}</div>
-                        }
-                        {users.map((user, idx) => <div className="Chip" key={idx}>{user.username}</div>)}
+        <div className="Game">
+            { (status === GameStatus.VOTING || status === GameStatus.COUNTDOWN) &&
+                <button className="ReadyButton" onClick={sendReady}>
+                    {nextReady ? <span>Ready</span> : <span>Cancel Ready</span>}
+                </button>
+            }
+            <div className="GameContainer">
+                <div className="GameLeftContainer">
+                    <div className="GameRunning">
+                        {(
+                            status === GameStatus.VOTING 
+                            || status === GameStatus.COUNTDOWN
+                            || (status === GameStatus.ENDING && lost)
+                            || status === GameStatus.TERMINATING
+                        ) &&
+                            <div className="Curtain">
+                                {status === GameStatus.TERMINATING && <p className="GameTerminatingGuide">GAME ENDED.</p>}
+                                {lost && <p className="LostGuide">You Lost!</p>}
+                                {status === GameStatus.COUNTDOWN && <div className="Countdown">{count}</div>}
+                            </div>}
+                        <div className="Bid">
+                            <button onClick={sendNextBid}>Submit Next Bid</button>
+                            <div className="LastBid">Last Bid: {lastBid}</div>
+                            <div className="NextBid">Next Bid: {submitBid}</div>
+                        </div>
+                        <div className="ChipsContainer">
+                            {users.map((user, idx) => <Chip key={idx} username={user.username} chips={chips} setChips={setChips}/>)}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div className="GameRightContainer">
-                <UserList users={users}/>
-                <LoserList losers={losers}/>
+                <div className="GameRightContainer">
+                    <UserList users={users}/>
+                    {losers.length !== 0 && <LoserList losers={losers}/>}
+                </div>
             </div>
         </div>
     )

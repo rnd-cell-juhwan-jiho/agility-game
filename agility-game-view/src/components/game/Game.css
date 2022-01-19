@@ -1,25 +1,76 @@
+.ReadyButton {
+    font-size: 2em;
+    height: 3em;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .GameContainer {
     display: flex;
 }
 
 .GameRunning {
     position: static;
-    background-color:wheat;
     width: calc(100vw - 10em);
 }
 
-.ReadyButton {
+.Bid > button {
+    box-sizing: border-box;
+}
+
+.lastBid {
+    color: #aaa;
+    font-size: 1em;
+}
+
+.NextBid {
     font-size: 2em;
-    height: 3em;
-    width: 100%;
+    font-style: italic;
 }
 
 .Curtain {
-    background-color: #FFF;
-    opacity: 0.7;
+    background-color: #f8f8f8;
+    opacity: 0.8;
     position: absolute;
     height: 100%;
     width: calc(100vw - 10em);
+    text-align: center;
+}
+
+.Curtain > .Countdown {
+    margin-top: 50px;
+    text-align: center;
+    color: blue;
+    opacity: 1;
+    font-style: italic;
+    font-size: 3em;
+}
+
+.Curtain > .LostGuide {
+    margin-top: 50px;
+    text-align: center;
+    color: red;
+    font-size: 2em;
+    opacity: 1;
+}
+
+.Curtain > .GameTerminatingGuide {
+    margin-top: 50px;
+    text-align: center;
+    font-size: 1em;
+    opacity: 1;
+}
+
+.ChipAnimate {
+    height: 100px;
+    width: 100px;
+    margin: 10px;
+    border: 1px solid black;
+    border-radius: 50%;
+    display: inline-block;
+    text-align: center;
+
+    animation: pop 0.3s;
 }
 
 .Chip {
@@ -33,19 +84,33 @@
 }
 
 .GameRightContainer {
-    background-color: thistle;
     height: 100%;
-    box-sizing: border-box;
 }
 
 .UserList {
-    background-color:rgb(202, 138, 202);
+    background-color: #ddf;
     width: 10em;
+    padding: 10px;
+    border-radius: 50px;
+}
+
+.LoserList {
+    background-color: #fdd;
     padding: 10px;
 }
 
+.Loser {
+    font-weight: bold;
+}
 .Guide {
     margin-bottom: 1em;
     opacity: 0.3;
     font-style: italic;
+}
+
+@keyframes pop {
+    50% {
+        border: 1px solid red;
+        transform: scale(1.2);
+    }
 }
