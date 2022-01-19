@@ -1,17 +1,21 @@
 import React from 'react'
+import {useNavigate} from 'react-router-dom'
 
 const GameThumbnail = (props) => {
 
+    const navigate = useNavigate()
+
     const handleClick = (e) => {
         console.log(e);
-
-        console.log("handleClick()...")
+        navigate("/game/"+props.game.game_id)
     }
 
     return (
-        <div className="GameThumbnail" onClick={handleClick}>
-            Game id:{props.game.game_id}, status:{props.game.status}, size:{props.game.size}
-        </div>
+        <tr className="GameThumbnail" onClick={handleClick}>
+            <td>{props.game.game_id}</td>
+            <td>{props.game.status}</td>
+            <td>{props.game.size}</td>
+        </tr>
     )
 }
 

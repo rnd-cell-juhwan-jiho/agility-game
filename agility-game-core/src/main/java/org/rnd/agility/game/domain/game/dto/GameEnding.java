@@ -11,6 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class GameEnding {
     private String type = DtoType.END;
-    private Boolean isTerminating;
-    private List<String> loserList;
+    private Boolean terminating;
+    private List<String> losers;
 }

@@ -1,12 +1,11 @@
 package org.rnd.agility.game.domain.game.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserReady {
     private String type = DtoType.READY;
     private String username;

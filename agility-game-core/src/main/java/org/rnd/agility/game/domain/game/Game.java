@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.rnd.agility.game.domain.game.dto.*;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
@@ -28,13 +29,15 @@ public class Game {
     private final AtomicInteger readyCnt = new AtomicInteger(0);
     private final AtomicReference<GameBid> lastBid = new AtomicReference<>(new GameBid());
     private final AtomicLong lastBidTime = new AtomicLong(0);
-    private final Vector<String> losers = new Vector<>();
+    private final Set<String> losers = ConcurrentHashMap.newKeySet();   //concurrent set
 
     private final AtomicReference<GameStatus> status = new AtomicReference<>(GameStatus.VOTING);
 
     private final Sinks.Many<String> channel = Sinks.many().multicast().onBackpressureBuffer();
-    private final Flux<Integer> countdownFlux = Flux.range(0, 11).map(n -> 10 - n)
-            .delayElements(Duration.ofSeconds(1));
+    private final Flux<Integer> countdownFlux = Flux.just(10).concatWith(
+            Flux.range(1, 10).map(n -> 10 - n)
+                    .delayElements(Duration.ofSeconds(1))
+    );
     private final AtomicReference<Disposable> countdownSubs = new AtomicReference<>(null);
 
     public void processMessage(String type, String msg) throws JsonProcessingException {
@@ -73,8 +76,7 @@ public class Game {
             var newReadyCnt = this.readyCnt.decrementAndGet();
             if (this.isCountingDown() && newReadyCnt < users.size() / 2)
                 this.cancelCountdown();
-        }
-        else if(this.isRunning() && this.users.size() < 3){
+        } else if (this.isRunning() && this.users.size() < 3) {
             this.cancelRunning(userOut.getUsername());
         }
 
@@ -85,20 +87,17 @@ public class Game {
         GameBid newBid = this.mapper.readValue(inbound, GameBid.class);
         if (this.isRunning()) {
             //if this is the first loser
-            if (newBid.getBid().equals(this.lastBid.get().getBid())) {
-                this.status.set(GameStatus.ENDING);
+            if (newBid.getBid() == this.lastBid.get().getBid()) {
+                this.status.compareAndSet(GameStatus.RUNNING, GameStatus.ENDING);
                 this.losers.add(this.lastBid.get().getUsername());
                 this.losers.add(newBid.getUsername());
 
-                Flux.just(0, 1, 2).delayElements(Duration.ofSeconds(1))
+                Mono.just(0).delayElement(Duration.ofSeconds(1))
                         .subscribe(
-                                sec -> {
+                                __ -> {
                                 },
                                 Throwable::printStackTrace,
-                                () -> {
-                                    this.status.set(GameStatus.TERMINATING);
-                                    this.channel.tryEmitNext(mapperWriteAsString(new GameEnding(DtoType.END, true, new ArrayList<>(this.losers))));
-                                }
+                                this::terminate
                         );
 
                 String outbound = mapperWriteAsString(new GameEnding(DtoType.END, false, new ArrayList<>(this.losers)));
@@ -110,9 +109,10 @@ public class Game {
             }
         }
         //if 2 seconds countdown is ongoing,
-        //add to losers and notify others
         else if (this.isEnding()) {
-            this.losers.add(newBid.getUsername());
+            //add to `losers` and notify others
+            if (newBid.getBid() == this.lastBid.get().getBid())
+                this.losers.add(newBid.getUsername());
 
             String outbound = mapperWriteAsString(new GameEnding(DtoType.END, false, new ArrayList<>(this.losers)));
             this.channel.tryEmitNext(outbound);
@@ -122,15 +122,14 @@ public class Game {
 
     private void handleReady(String inbound) throws JsonProcessingException {
         UserReady userReady = mapperRead(inbound, UserReady.class);
-        var willCountdown = isCountdownAfterReady(userReady.getUsername(), userReady.getReady());
-        if (this.isVoting() && willCountdown) {
-            this.startCountdown();
-
+        var willCountdown = isCountdownAfterReady(userReady);
+        if (this.isVoting()) {
+            if (willCountdown)
+                this.startCountdown();
             this.channel.tryEmitNext(inbound);
         } else if (this.isCountingDown()) {
             if (!willCountdown)
                 this.cancelCountdown();
-
             this.channel.tryEmitNext(inbound);
         } else
             this.channel.tryEmitNext(this.mapperWriteAsString(new Reject(DtoType.REJECT)));
@@ -151,6 +150,7 @@ public class Game {
     }
 
     public void startCountdown() {
+        this.getStatus().compareAndSet(GameStatus.VOTING, GameStatus.COUNTDOWN);
         var subscription = this.countdownFlux
                 .doOnCancel(() -> {
                     this.status.compareAndSet(GameStatus.COUNTDOWN, GameStatus.VOTING);
@@ -169,10 +169,10 @@ public class Game {
     }
 
     //triggered ONLY by USER_OUT
-    private void cancelRunning(String username){
+    private void cancelRunning(String username) {
         this.status.compareAndSet(GameStatus.RUNNING, GameStatus.VOTING);
         this.readyCnt.set(0);
-        for(var entry: this.users.entrySet())
+        for (var entry : this.users.entrySet())
             entry.setValue(false);
         this.lastBidTime.set(0);
         this.lastBid.set(new GameBid());
@@ -180,7 +180,17 @@ public class Game {
         this.channel.tryEmitNext(outbound);
     }
 
-    public boolean isCountdownAfterReady(String username, Boolean ready) {
+    private void terminate() {
+        this.status.compareAndSet(GameStatus.ENDING, GameStatus.TERMINATING);
+        this.channel.tryEmitNext(mapperWriteAsString(new GameEnding(DtoType.END, true, new ArrayList<>(this.losers))));
+    }
+
+    public boolean isCountdownAfterReady(UserReady userReady) {
+        var username = userReady.getUsername();
+        var ready = userReady.getReady();
+        //discard duplicate READY
+        if (this.users.get(username) == ready)
+            return false;
         this.users.put(username, ready);
         int usz = this.users.size(), readyCnt;
         if (ready)

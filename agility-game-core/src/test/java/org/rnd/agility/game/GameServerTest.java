@@ -1,15 +1,23 @@
 package org.rnd.agility.game;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.rnd.agility.game.domain.game.dto.Init;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class GameServerTest {
 
+    ObjectMapper mapper = new ObjectMapper();
     AtomicInteger n = new AtomicInteger(0);
     Flux<Integer> countdownFlux = Flux.range(0, 11).map(n -> 10-n)
             .delayElements(Duration.ofMillis(1000));
@@ -60,5 +68,25 @@ class GameServerTest {
         disposable.dispose();
         countdownFlux.subscribe(n -> System.out.println(n+" "+Thread.currentThread()));
         Thread.sleep(12000);
+    }
+
+    @Test
+    public void play4() throws InterruptedException {
+        Flux<Integer> timeline = Flux.range(0, 11)
+                .delayElements(Duration.ofSeconds(1))
+                .doOnNext(n -> System.out.println("--"+n+"--"));
+        timeline.subscribe();
+
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        Mono<String> mono1 = Mono.fromFuture(future).doOnNext(System.out::println);
+        Mono<String> mono2 = Mono.just("b").delaySubscription(mono1).doOnNext(c -> System.out.println("[mono2] "+c));
+
+        mono2.subscribe();
+
+        Thread.sleep(2000);
+        future.complete("a");
+
+        Thread.sleep(10_000);
     }
 }

@@ -7,17 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.rnd.agility.game.domain.game.GameManager;
 import org.rnd.agility.game.domain.game.dto.DtoType;
 import org.rnd.agility.game.domain.game.dto.Init;
+import org.rnd.agility.game.domain.game.dto.User;
+import org.rnd.agility.game.domain.game.dto.UserEntrance;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /*
 
@@ -29,23 +31,29 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
     private final ObjectMapper mapper;
     private final GameManager gameManager;
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
+        //upon connection, 1) wait for INIT message from the client
+        //2) then send back INIT message containing list of users
 
         var queryMap = getQueryMap(session.getHandshakeInfo().getUri().getQuery());
-        var gameId = queryMap.get("id");
+        var gameId = queryMap.get("game-id");
+        var username = queryMap.get("username");
         var game = this.gameManager.getGame(gameId);
 
-        HashMap<String, Boolean> userMap = new HashMap<>(game.getUsers());
-        Mono<String> initialMessage = Mono.just(mapperWriteAsString(new Init(DtoType.INIT, userMap)));
+        List<User> userList = game.getUsers().entrySet().stream()
+                .map(entry -> new User(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+        String initialMessage = mapperWriteAsString(new Init(DtoType.INIT, null, userList));
+        Mono<String> initialMessageMono = Mono.just(initialMessage);
 
         Consumer<WebSocketMessage> onNextConsumer = (wsm) -> {
             var msg = wsm.getPayloadAsText();
             log.info(msg);
             try {
                 String type = this.mapper.reader().readTree(msg).get("type").asText();
+
                 game.processMessage(type, msg);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
@@ -53,11 +61,20 @@ public class GameWebSocketHandler implements WebSocketHandler {
         };
 
         Runnable onCompleteConsumer = () -> {
+            //multicast USER_OUT
+            String userOut = mapperWriteAsString(new UserEntrance(DtoType.USER_OUT, username, false));
+            try {
+                game.processMessage(DtoType.USER_OUT, userOut);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+
+            //if last player closes connection
             if(game.getUsers().isEmpty()) {
-                //when last player exits
                 log.info("=== Terminating game [ {} ] ===", gameId);
                 this.gameManager.removeGame(gameId);
             }
+            //if RUNNING game should be canceled back to VOTING
             else if(game.isCountingDown() && game.getUsers().size() < 3){
                 log.info("=== Cancelling game [ {} ] ===", gameId);
                 game.cancelCountdown();
@@ -72,7 +89,7 @@ public class GameWebSocketHandler implements WebSocketHandler {
                 );
 
         return session.send(
-                initialMessage
+                initialMessageMono
                         .concatWith(game.getChannel().asFlux())
                         .map(session::textMessage)
         );

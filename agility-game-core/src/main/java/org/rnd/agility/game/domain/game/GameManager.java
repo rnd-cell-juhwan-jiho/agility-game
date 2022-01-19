@@ -20,10 +20,11 @@ public class GameManager {
         return games.get(roomId);
     }
 
-    public void createGame(String roomId){
+    public void createGame(String gameId){
         var game = new Game();
         game.setMapper(this.mapper);
-        games.put(roomId, game);
+        game.setGameId(gameId);
+        games.put(gameId, game);
     }
 
     public boolean gameExists(String roomId){
