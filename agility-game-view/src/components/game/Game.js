@@ -27,7 +27,7 @@ const Game = () => {
     const [bidTimer$, _] = useState(timer(1000))
     const [timerSubs, setTimerSubs] = useState(null)
     const [lastBid, setLastBid] = useState(0)
-    const [submitBid, setSubmitBid] = useState(1)
+    const [nextBid, setNextBid] = useState(1)
 
     useEffect(() => {
         let cleanup = () => {
@@ -108,7 +108,7 @@ const Game = () => {
 
         setCount(-1)
         setLastBid(0)
-        setSubmitBid(1)
+        setNextBid(1)
     }, [status])
 
     useEffect(() => {
@@ -153,8 +153,8 @@ const Game = () => {
     }
 
     const handleBid = (msg) => {
-        if(msg.bid >= submitBid)
-            setSubmitBid(msg.bid)
+        if(msg.bid >= nextBid)
+            setNextBid(msg.bid)
         setLastBid(msg.bid)
 
         animateChip(msg.username)
@@ -168,7 +168,7 @@ const Game = () => {
             next: _ => {},
             error: err => console.log(err),
             complete: () => {
-                setSubmitBid(prev => prev+1)
+                setNextBid(prev => prev+1)
                 setTimerSubs(null)
             }
         }))
@@ -185,7 +185,7 @@ const Game = () => {
             handleCancel()
 
         setLosers(msg.losers)
-        if(username in msg.losers)
+        if(msg.losers.indexOf(username) !== -1)
             setLost(true)
         if(msg.terminating){
             if(status !== GameStatus.TERMINATING)
@@ -224,18 +224,18 @@ const Game = () => {
         webSocket.send(JSON.stringify({
             type: MessageType.BID,
             username: username,
-            bid: submitBid
+            bid: nextBid
         }))
 
         //2) increment submitBid
-        setSubmitBid(prev => prev+1)
+        setNextBid(prev => prev+1)
     }
 
     return (
         <div className="Game">
             { (status === GameStatus.VOTING || status === GameStatus.COUNTDOWN) &&
                 <button className="ReadyButton" onClick={sendReady}>
-                    {nextReady ? <span>Ready</span> : <span>Cancel Ready</span>}
+                    <span>{nextReady ? "READY" : "Cancel Ready"}</span>
                 </button>
             }
             <div className="GameContainer">
@@ -248,14 +248,14 @@ const Game = () => {
                             || status === GameStatus.TERMINATING
                         ) &&
                             <div className="Curtain">
-                                {status === GameStatus.TERMINATING && <p className="GameTerminatingGuide">GAME ENDED.</p>}
-                                {lost && <p className="LostGuide">You Lost!</p>}
+                                {status === GameStatus.TERMINATING && <div className="GameTerminatingGuide">GAME ENDED.</div>}
+                                {lost && <div className="LostGuide">You Lost!</div>}
                                 {status === GameStatus.COUNTDOWN && <div className="Countdown">{count}</div>}
                             </div>}
                         <div className="Bid">
                             <button onClick={sendNextBid}>Submit Next Bid</button>
                             <div className="LastBid">Last Bid: {lastBid}</div>
-                            <div className="NextBid">Next Bid: {submitBid}</div>
+                            <div className="NextBid">Next Bid: {nextBid}</div>
                         </div>
                         <div className="ChipsContainer">
                             {users.map((user, idx) => <Chip key={idx} username={user.username} chips={chips} setChips={setChips}/>)}
