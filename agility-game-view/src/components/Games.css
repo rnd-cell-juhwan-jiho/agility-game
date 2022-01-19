@@ -1,12 +1,83 @@
 .Games{
+    margin-left: 1em;
+    margin-right: 1em;
     box-sizing: border-box;
-    background-color: violet;
+}
+
+.NavBar {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.NavBar > form {
+    margin-left: 5px;
+}
+
+.NavBar > form > input {
+    width: 150px;
+    font-size: 1em;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.NavBar > form > button {
+    width: 150px;
+    font-size: 1em;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.UpdateButton {
+    height: 50px;
+    width: 200px;
+    font-size: 1.5em;
+    color: #555;
+    border: 1px solid #AAA;
+    border-radius: 5px;
+}
+
+.UpdateButton:hover {
+    background-color: #DDD
+}
+.UpdateButton:active {
+    background-color: #CCC
+}
+
+.EmptyGuide {
+    margin-left: 10px;
+    color: #888;
+    font-style: italic;
+}
+
+.Table {
+    margin-top: 10px;
+    border-collapse: collapse;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px 20px 8px 20px;
 }
 
 .GameThumbnail{
-    background-color: yellow;
-    border: 1px solid #AAA;
-    border-radius: 2px;
-    margin: 5px;
+    background-color: #d9d9d9;
+    border: 1px solid #BBB;
+    margin-top: 3px;
     box-sizing: border-box;
+    padding: 5px;
+}
+
+.GameThumbnail:hover {
+    background-color: #CCC;
+    border-collapse: collapse;
+}
+
+.GameThumbnail:active {
+    background-color: #BBB;
 }

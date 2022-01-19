@@ -1,0 +1,51 @@
+.GameContainer {
+    display: flex;
+}
+
+.GameRunning {
+    position: static;
+    background-color:wheat;
+    width: calc(100vw - 10em);
+}
+
+.ReadyButton {
+    font-size: 2em;
+    height: 3em;
+    width: 100%;
+}
+
+.Curtain {
+    background-color: #FFF;
+    opacity: 0.7;
+    position: absolute;
+    height: 100%;
+    width: calc(100vw - 10em);
+}
+
+.Chip {
+    height: 100px;
+    width: 100px;
+    margin: 10px;
+    border: 1px solid black;
+    border-radius: 50%;
+    display: inline-block;
+    text-align: center;
+}
+
+.GameRightContainer {
+    background-color: thistle;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.UserList {
+    background-color:rgb(202, 138, 202);
+    width: 10em;
+    padding: 10px;
+}
+
+.Guide {
+    margin-bottom: 1em;
+    opacity: 0.3;
+    font-style: italic;
+}

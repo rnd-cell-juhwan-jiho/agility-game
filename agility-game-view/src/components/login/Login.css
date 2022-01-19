@@ -1,0 +1,46 @@
+.Login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.LoginContainer {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 20px;
+}
+
+.Guide {
+    text-align: center;
+}
+
+input {
+    font-size: 1.5em;
+    height: 40px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+}
+
+button {
+    margin-top: 3px;
+    font-size: 1.5em;
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+}
+
+button:hover{
+    background-color: #ddd;
+}
+
+button:active{
+    background-color: #bbb;
+}

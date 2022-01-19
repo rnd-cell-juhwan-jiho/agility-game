@@ -25,10 +25,13 @@ public class GameHandshakeWebSocketService extends HandshakeWebSocketService {
         ServerHttpRequest request = exchange.getRequest();
 
         //if opening handshake request is invalid
-        if(!request.getQueryParams().containsKey("id"))
+        if(!request.getQueryParams().containsKey("game-id"))
             return Mono.error(new IllegalArgumentException("Key 'id' not found in query parameters"));
+        else if(!request.getQueryParams().containsKey("username"))
+            return Mono.error(new IllegalArgumentException("key 'username' not found in query parameters"));
 
-        var gameId = request.getQueryParams().get("id").get(0);
+        var gameId = request.getQueryParams().get("game-id").get(0);
+        var username = request.getQueryParams().get("username").get(0);
 
         //if game does not exist, create new game
         if(!gameManager.gameExists(gameId))
@@ -37,6 +40,7 @@ public class GameHandshakeWebSocketService extends HandshakeWebSocketService {
             if(!gameManager.getGame(gameId).isVoting())
                 return Mono.error(new IllegalAccessException("Unable to join this game right now."));
         }
+//        gameManager.getGame(gameId).getUsers().put(username, false);
 
         return super.handleRequest(exchange, handler);
     }
