@@ -1,5 +1,6 @@
 import React from 'react'
 import {useNavigate} from 'react-router-dom'
+import GameStatus from './game/GameStatus'
 
 const GameThumbnail = (props) => {
 
@@ -7,6 +8,10 @@ const GameThumbnail = (props) => {
 
     const handleClick = (e) => {
         console.log(e);
+        if(props.game.status !== GameStatus.VOTING){
+            alert("You can only join games in 'VOTING' status.")
+            return
+        }
         navigate("/game/"+props.game.game_id)
     }
 

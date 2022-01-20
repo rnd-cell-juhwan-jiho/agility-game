@@ -7,13 +7,8 @@ import Game from './components/game/Game'
 import GameContextProvider from './GameContextProvider'
 import AuthProvider from './AuthProvider'
 import RequireAuth from './RequireAuth'
-import {useEffect} from 'react'
 
 function App() {
-
-  useEffect(() => {
-    return ()=>console.log("unmounting..")
-  })
 
   return (
     <AuthProvider><GameContextProvider>

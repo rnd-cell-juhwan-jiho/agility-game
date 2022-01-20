@@ -39,6 +39,7 @@ public class Game {
                     .delayElements(Duration.ofSeconds(1))
     );
     private final AtomicReference<Disposable> countdownSubs = new AtomicReference<>(null);
+    private final Mono<Boolean> endingMono = Mono.just(true).delayElement(Duration.ofSeconds(1));
 
     public void processMessage(String type, String msg) throws JsonProcessingException {
         switch (type) {
@@ -92,13 +93,11 @@ public class Game {
                 this.losers.add(this.lastBid.get().getUsername());
                 this.losers.add(newBid.getUsername());
 
-                Mono.just(0).delayElement(Duration.ofSeconds(1))
-                        .subscribe(
-                                __ -> {
-                                },
-                                Throwable::printStackTrace,
-                                this::terminate
-                        );
+                this.endingMono.subscribe(
+                        __ -> { },
+                        Throwable::printStackTrace,
+                        this::terminate
+                );
 
                 String outbound = mapperWriteAsString(new GameEnding(DtoType.END, false, new ArrayList<>(this.losers)));
                 this.channel.tryEmitNext(outbound);
@@ -225,7 +224,8 @@ public class Game {
         COUNTDOWN("COUNTDOWN"),
         RUNNING("RUNNING"),
         ENDING("ENDING"),
-        TERMINATING("TERMINATING");
+        TERMINATING("TERMINATING"),
+        NOT_FOUND("NOT_FOUND");
 
         private final String value;
 

@@ -2,6 +2,9 @@ import {useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 import GameThumbnail from './GameThumbnail'
 import './Games.css'
+import Spinner from './spinner/Spinner'
+import NetStat from './NetStat'
+import GameStatus from './game/GameStatus'
 
 // const test = [{
 //     game_id: "123",
@@ -14,7 +17,9 @@ const Games = (props) => {
     const navigate = useNavigate()
     const [initialized, setInitialized] = useState(false)
     const [games, setGames] = useState([])
-    const url = "http://localhost:8080/games"
+    const [fetchStatus, setFetchStatus] = useState(NetStat.IDLE)
+    const gamesUrl = "http://localhost:8080/games"
+    const gameStatusUrl = "http://localhost:8080/game/status?game-id="
 
     useEffect(() => {
         if(!initialized){
@@ -24,7 +29,9 @@ const Games = (props) => {
     })
 
     const fetchGames = (e) => {
-        fetch(url, {
+        setFetchStatus(NetStat.LOADING)
+
+        fetch(gamesUrl, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -33,14 +40,43 @@ const Games = (props) => {
         .then(data => {
             console.log(data)
             setGames(data.games)
+            setFetchStatus(NetStat.IDLE)
         }).catch(error => {
             console.log("=== ERROR ===")
             console.log(error)
+            setFetchStatus(NetStat.ERROR)
         })
     }
 
     const handleSubmit = e => {
-        navigate("/game/"+e.currentTarget.gameIdInput.value)
+        e.preventDefault()
+
+        let gameId = e.currentTarget.gameIdInput.value
+        if(gameId === ""){
+            alert("Game ID can't be nothing!")
+            return
+        }
+
+        fetch(gameStatusUrl + gameId, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(response => {
+            if(response.status === 404){
+                alert("Game not found. Creating new game..")
+                navigate("/game/"+gameId)
+            }
+            else{
+                response.json().then(data => {
+                    if(data.status === GameStatus.VOTING)
+                        navigate("/game/"+gameId)
+                    else
+                        alert("You can only join games when it's VOTING. Current status: "+data.status)
+                })
+            }
+        })
+
     }
 
     return (
@@ -66,7 +102,11 @@ const Games = (props) => {
                     }
                 </tbody>
             </table>
-            {games.length === 0 && <div className="EmptyGuide">(There are no games right now)</div>}
+            {games.length === 0 && fetchStatus === NetStat.IDLE && <div className="EmptyGuide">(There are no games right now)</div>}
+            <div className="NotIdleGuide">
+                {fetchStatus === NetStat.LOADING && <Spinner/>}
+                {fetchStatus === NetStat.ERROR && <div className="Error">Something went wrong :(</div>}
+            </div>
         </div>
     )
 }

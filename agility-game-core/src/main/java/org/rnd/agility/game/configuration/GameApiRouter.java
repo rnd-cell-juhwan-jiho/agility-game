@@ -19,6 +19,7 @@ public class GameApiRouter {
     RouterFunction<ServerResponse> route(GameApiHandler apiHandler){
         return RouterFunctions.route()
                 .GET("/games", accept(MediaType.APPLICATION_JSON), apiHandler::getGames)
+                .GET("/game/status", accept(MediaType.APPLICATION_JSON), apiHandler::getGameStatus)
                 .build();
     }
 }

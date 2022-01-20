@@ -1,25 +1,95 @@
-.GameContainer {
-    display: flex;
-}
-
-.GameRunning {
-    position: static;
-    background-color:wheat;
-    width: calc(100vw - 10em);
-}
-
 .ReadyButton {
     font-size: 2em;
     height: 3em;
     width: 100%;
+    box-sizing: border-box;
+}
+
+.GameContainer {
+    display: flex;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.GameContainer > .GameLeftContainer {
+    width: calc(100vw - 10em);
+    margin: 0;
+    padding-left: 5px;
+}
+
+.Bid > button {
+    box-sizing: border-box;
+    margin-top: 0;
+}
+
+.AutoBidCount {
+    color: #888;
+    font-weight: lighter;
+}
+
+.AutoBidCount > span {
+    color: black;
+    font-weight: bold;
+}
+
+.LastBid {
+    color: #888;
+    font-size: 1em;
+}
+
+.NextBid {
+    font-size: 2em;
+    font-style: italic;
 }
 
 .Curtain {
-    background-color: #FFF;
-    opacity: 0.7;
+    background-color: rgb(248, 248, 248, 0.8);
     position: absolute;
+    left: 0px;
     height: 100%;
     width: calc(100vw - 10em);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.Curtain > .Countdown {
+    margin-top: 50px;
+    text-align: center;
+    color: blue;
+    opacity: 1;
+    font-style: italic;
+    font-size: 3em;
+}
+
+.Curtain > .GameTerminatingGuide {
+    margin-top: 50px;
+    font-size: 1.3em;
+    font-weight: bold;
+    opacity: 1;
+}
+
+.Curtain > .LostGuide {
+    margin-top: 10px;
+    background-color: rgb(0, 0, 0, 0.8);
+    height: 2em;
+    color: red;
+    font-size: 2em;
+    text-align: center;
+    width: 100%;
+}
+
+.ChipAnimate {
+    height: 100px;
+    width: 100px;
+    margin: 10px;
+    border: 1px solid black;
+    border-radius: 50%;
+    display: inline-block;
+    text-align: center;
+    box-sizing: border-box;
+
+    animation: pop 0.4s;
 }
 
 .Chip {
@@ -30,22 +100,60 @@
     border-radius: 50%;
     display: inline-block;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .GameRightContainer {
-    background-color: thistle;
     height: 100%;
     box-sizing: border-box;
 }
 
 .UserList {
-    background-color:rgb(202, 138, 202);
+    background-color: #ddf;
     width: 10em;
     padding: 10px;
+    border-radius: 5px 5px 0 0;
+    box-sizing: border-box;
+}
+
+.User {
+    margin-top: 5px;
+    display: flex;
+    justify-content: flex-start;
+    justify-content: space-between;
+}
+
+.ReadySpan {
+    font-style: italic;
+    color: blue;
+}
+
+.LoserList {
+    background-color: #fdd;
+    padding: 10px;
+    border-radius: 0 0 5px 5px;
+    box-sizing: border-box;
+}
+
+.Loser {
+    font-weight: bold;
 }
 
 .Guide {
     margin-bottom: 1em;
     opacity: 0.3;
     font-style: italic;
+}
+
+@keyframes pop {
+    30% {
+        border: 1px solid red;
+        color: red;
+        transform: scale(1.2);
+    }
+    60% {
+        border: 1px solid red;
+        color: red;
+        transform: scale(1.2);
+    }
 }

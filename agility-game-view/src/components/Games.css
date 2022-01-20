@@ -81,3 +81,12 @@ td, th {
 .GameThumbnail:active {
     background-color: #BBB;
 }
+
+.NotIdleGuide {
+    margin: 10px;
+}
+
+.Error {
+    color: red;
+    font-style: italic;
+}

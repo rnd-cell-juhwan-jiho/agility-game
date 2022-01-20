@@ -4,9 +4,11 @@ import {AuthContext} from '../../AuthProvider'
 import {useParams, useNavigate} from 'react-router-dom'
 import './Game.css'
 import MessageType from './MessageType'
-import {timer} from 'rxjs'
+import {Subject, of, interval, timer, concat} from 'rxjs'
+import {take, map, switchMapTo} from 'rxjs/operators'
 import UserList from './UserList'
 import LoserList from './LoserList'
+import Chip from './Chip'
 
 const Game = () => {
 
@@ -21,23 +23,36 @@ const Game = () => {
     const [count, setCount] = useState(-1)  //countdown
     const [lost, setLost] = useState(false)
 
-    const [bidTimer$, _] = useState(timer(1000))
-    const [timerSubs, setTimerSubs] = useState(null)
+    const [chips, setChips] = useState({})
+
+    const [bidEmitter$, _be] = useState(new Subject())
+    const [autoBidCount, setAutoBidCount] = useState(-1)
+    const [autoBidCount$, _abc] = useState(concat(
+            of(10),
+            interval(1000).pipe(take(10), map(t => 9-t))
+        ))
+    // const [autoBidSubs, setAutoBidSubs] = useState(null)
+
+    const [bidTimer$, _bt] = useState(timer(600))
+    const [bidTimerSubs, setBidTimerSubs] = useState(null)
     const [lastBid, setLastBid] = useState(0)
-    const [submitBid, setSubmitBid] = useState(1)
+    const [nextBid, setNextBid] = useState(1)
 
-    useEffect(() => {
-        let cleanup = () => {
-            console.log("in cleanup..")
-            if(webSocket === null)
-                return
+    /* [ISSUE] webSocket is null at cleanup execution but connection is still open.. */
 
-            console.log("closing webSocket..")
-            webSocket.close()
-        }
-        return cleanup
-    }, [])
+    // useEffect(() => {
+    //     let cleanup = () => {
+    //         console.log("in cleanup..")
+    //         if(webSocket === null)
+    //             return
 
+    //         console.log("closing webSocket..")
+    //         webSocket.close()
+    //     }
+    //     return cleanup
+    // }, [])
+
+    /* initalize webSocket */
     useEffect(() => {
         if(webSocket !== null)
             return
@@ -48,6 +63,11 @@ const Game = () => {
         ws.onopen = _ => {
             console.log("onopen()..")
             setWebSocket(ws)
+            
+            window.onpopstate = e => {
+                console.log("window.onpopstate..")
+                ws.close()
+            }
             
             let init = JSON.stringify({
                 type: MessageType.USER_IN,
@@ -98,15 +118,38 @@ const Game = () => {
 
     }, [])
 
-    //reset game if game cancels at GameStatus.RUNNING
+    /* reset game if game cancels at GameStatus.RUNNING */
     useEffect(() => {
-        if(status !== GameStatus.VOTING)
-            return
+        if(status === GameStatus.VOTING){
+            setCount(-1)
+            setLastBid(0)
+            setNextBid(1)
+        }
+        else if(status === GameStatus.RUNNING){
+            bidEmitter$.asObservable().pipe(
+                switchMapTo(autoBidCount$)
+            ).subscribe({
+                next: t => {
+                    setAutoBidCount(t)
+                    if(t == 0)
+                        sendNextBid(null)
+                }
+            })
 
-        setCount(-1)
-        setLastBid(0)
-        setSubmitBid(1)
+            bidEmitter$.next()
+        }
+        else if(status === GameStatus.TERMINATING){
+            console.log("completing bidEmitter$...")
+            bidEmitter$.complete()
+        }
     }, [status])
+
+    /* chip animation */
+    useEffect(() => {
+        let newChips = {}
+        users.forEach(user => newChips[user.username] = false)
+        setChips(newChips)
+    }, [users])
 
     const handleInit = (msg) => {
         setUsers(prev => [...prev, ...msg.users])
@@ -137,30 +180,46 @@ const Game = () => {
         setCount(msg.count)
         if(msg.count === -1)
             setStatus(GameStatus.VOTING)
-        else if(msg.count === 0)
+        else if(msg.count === 0){
             setStatus(GameStatus.RUNNING)
+        }
         else
             setStatus(GameStatus.COUNTDOWN)
     }
 
     const handleBid = (msg) => {
-        if(msg.bid >= submitBid)
-            setSubmitBid(msg.bid)
+        /* SET BID TIMER RULE HERE */
+        if(msg.username === username)
+            bidEmitter$.next();
+
+        //1) set nextBid to the highest among incoming bids and current nextBid
+        if(msg.bid >= nextBid)
+            setNextBid(msg.bid)
         setLastBid(msg.bid)
 
-        if(timerSubs !== null){
-            timerSubs.unsubscribe()
-            setTimerSubs(null)
+        animateChip(msg.username)
+
+        //2) if 1s bid timer is ongoing, cancel it
+        if(bidTimerSubs !== null){
+            bidTimerSubs.unsubscribe()
+            setBidTimerSubs(null)
         }
 
-        setTimerSubs(bidTimer$.subscribe({
+        //3) restart bid timer
+        setBidTimerSubs(bidTimer$.subscribe({
             next: _ => {},
             error: err => console.log(err),
             complete: () => {
-                setSubmitBid(prev => prev+1)
-                setTimerSubs(null)
+                setNextBid(prev => prev+1)
+                setBidTimerSubs(null)
             }
         }))
+    }
+
+    const animateChip = (user) => {        
+        let newChips = JSON.parse(JSON.stringify(chips))
+        newChips[user] = true
+        setChips(newChips)
     }
 
     const handleEnd = (msg) => {
@@ -168,6 +227,8 @@ const Game = () => {
             handleCancel()
 
         setLosers(msg.losers)
+        if(msg.losers.indexOf(username) !== -1)
+            setLost(true)
         if(msg.terminating){
             if(status !== GameStatus.TERMINATING)
                 setStatus(GameStatus.TERMINATING)
@@ -175,7 +236,6 @@ const Game = () => {
         else{
             if(status !== GameStatus.ENDING)
                 setStatus(GameStatus.ENDING)
-            
         }
     }
 
@@ -196,48 +256,85 @@ const Game = () => {
     }
 
     const sendNextBid = (e) => {
-        e.preventDefault()
+        if(e !== null)
+            e.preventDefault()
 
-        if(status !== GameStatus.RUNNING && status !== GameStatus.ENDING)
+        //block if game is not RUNNING nor ENDING, or lost
+        if(status !== GameStatus.RUNNING && status !== GameStatus.ENDING){
+            alert("You can bid only when the game is ongoing.")
             return
+        }
+        else if (lost){
+            alert("Can't bid when you've lost!")
+            return
+        }
 
-        //1) submit submitBid
+        //1) submit nextBid
         webSocket.send(JSON.stringify({
             type: MessageType.BID,
             username: username,
-            bid: submitBid
+            bid: nextBid
         }))
 
-        //2) increment submitBid
-        setSubmitBid(prev => prev+1)
+        //2) increment nextBid
+        setNextBid(prev => prev+1)
     }
 
+    // const resetAutoBid = () => {
+    //     if(autoBidSubs !== null){
+    //         console.log("unsubscribing..")
+    //         autoBidSubs.unsubscribe()
+    //     }
+    //     setAutoBidSubs(
+    //         autoBidCount$.subscribe({
+    //             next: t => setAutoBidCount(t),
+    //             error: err => console.log(err),
+    //             complete: () => sendNextBid()
+    //         })
+    //     )
+    // }
+
     return (
-        <div className="GameContainer">
-            <div className="GameLeftContainer">
-                { (status === GameStatus.VOTING || status === GameStatus.COUNTDOWN) &&
-                    <button className="ReadyButton" onClick={sendReady}>
-                        {nextReady ? <span>Ready</span> : <span>Cancel Ready</span>}
-                    </button>
-                }
-                <div className="GameRunning">
-                    {(status !== GameStatus.RUNNING && status !== GameStatus.ENDING) && <div className="Curtain"/>}
-                    <div className="Bid">
-                        <div>Last Bid: {lastBid}</div>
-                        <div>Next Bid: {submitBid}</div>
-                        <button onClick={sendNextBid}>Submit Next Bid</button>
-                    </div>
-                    <div className="ChipsContainer">
-                        {status === GameStatus.COUNTDOWN && 
-                            <div className="Countdown">{count}</div>
+        <div className="Game">
+            { (status === GameStatus.VOTING || status === GameStatus.COUNTDOWN) &&
+                <button className="ReadyButton" onClick={sendReady}>
+                    <span>{nextReady ? "READY" : "Cancel Ready"}</span>
+                </button>
+            }
+            <div className="GameContainer">
+                <div className="GameLeftContainer">
+                    <div className="GameRunning">
+                        {(
+                            status === GameStatus.VOTING 
+                            || status === GameStatus.COUNTDOWN
+                            || (status === GameStatus.ENDING && lost)
+                            || status === GameStatus.TERMINATING
+                        ) &&
+                            <div className="Curtain">
+                                {status === GameStatus.TERMINATING && <div className="GameTerminatingGuide">GAME ENDED.</div>}
+                                {lost && <div className="LostGuide">You Lost!</div>}
+                                {status === GameStatus.COUNTDOWN && <div className="Countdown">{count}</div>}
+                            </div>
                         }
-                        {users.map((user, idx) => <div className="Chip" key={idx}>{user.username}</div>)}
+                        <div className="Bid">
+                            <button onClick={sendNextBid}>Submit Next Bid</button>
+
+                            {(status === GameStatus.RUNNING || status === GameStatus.ENDING)
+                                && <div className="AutoBidCount">engaging auto-bid in: <span>{autoBidCount}</span>...</div>
+                            }
+                            <br/>
+                            <div className="LastBid"> Last Bid: {lastBid}</div>
+                            <div className="NextBid">Next Bid: {nextBid}</div>
+                        </div>
+                        <div className="ChipsContainer">
+                            {users.map((user, idx) => <Chip key={idx} username={user.username} chips={chips} setChips={setChips}/>)}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div className="GameRightContainer">
-                <UserList users={users}/>
-                <LoserList losers={losers}/>
+                <div className="GameRightContainer">
+                    <UserList users={users}/>
+                    {losers.length !== 0 && <LoserList losers={losers}/>}
+                </div>
             </div>
         </div>
     )
