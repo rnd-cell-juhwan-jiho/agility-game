@@ -57,6 +57,10 @@ const Games = (props) => {
             return
         }
 
+        tryJoinGame(gameId)
+    }
+
+    const tryJoinGame = gameId => {
         fetch(gameStatusUrl + gameId, {
             method: "GET",
             headers: {
@@ -72,11 +76,10 @@ const Games = (props) => {
                     if(data.status === GameStatus.VOTING)
                         navigate("/game/"+gameId)
                     else
-                        alert("You can only join games when it's VOTING. Current status: "+data.status)
+                        alert("You can only join games when it's VOTING.\n\nCurrent status: "+data.status)
                 })
             }
         })
-
     }
 
     return (
@@ -98,7 +101,9 @@ const Games = (props) => {
                 </thead>
                 <tbody>
                     {games.length !== 0
-                        && games.map((game, index) => <GameThumbnail key={index} game={game}/>)
+                        && games.map((game, index) => 
+                            <GameThumbnail key={index} game={game} tryJoinGame={tryJoinGame}/>
+                        )
                     }
                 </tbody>
             </table>

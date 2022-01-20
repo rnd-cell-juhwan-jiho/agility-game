@@ -8,11 +8,8 @@ const GameThumbnail = (props) => {
 
     const handleClick = (e) => {
         console.log(e);
-        if(props.game.status !== GameStatus.VOTING){
-            alert("You can only join games in 'VOTING' status.")
-            return
-        }
-        navigate("/game/"+props.game.game_id)
+        
+        props.tryJoinGame(props.game.game_id)
     }
 
     return (
