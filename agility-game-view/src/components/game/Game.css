@@ -1,25 +1,37 @@
+.Game{
+    overflow-y: hidden;
+}
+
 .ReadyButton {
     font-size: 2em;
     height: 3em;
     width: 100%;
+    border-radius: 0;
     box-sizing: border-box;
+    border: 3px solid #ccc;
 }
 
 .GameContainer {
     display: flex;
     box-sizing: border-box;
-    position: relative;
+    /* position: relative; */
 }
 
 .GameContainer > .GameLeftContainer {
-    width: calc(100vw - 10em);
+    width: calc(100vw - 180px);
+    min-width: 300px;
     margin: 0;
     padding-left: 5px;
+    position: relative;
 }
 
+
 .Bid > button {
-    box-sizing: border-box;
+    width: calc(100% - 5px);
     margin-top: 0;
+    border-radius: 0;
+    border: 2px solid #ccc;
+    box-sizing: border-box;
 }
 
 .AutoBidCount {
@@ -47,7 +59,8 @@
     position: absolute;
     left: 0px;
     height: 100%;
-    width: calc(100vw - 10em);
+    min-width: 300px;
+    width: calc(100vw - 180px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -105,14 +118,14 @@
 
 .GameRightContainer {
     height: 100%;
+    width: 180px;
     box-sizing: border-box;
 }
 
 .UserList {
     background-color: #ddf;
-    width: 10em;
     padding: 10px;
-    border-radius: 5px 5px 0 0;
+    border-radius: 5px 0 0 5px;
     box-sizing: border-box;
 }
 
@@ -131,7 +144,7 @@
 .LoserList {
     background-color: #fdd;
     padding: 10px;
-    border-radius: 0 0 5px 5px;
+    border-radius: 5px 0 0 5px;
     box-sizing: border-box;
 }
 
