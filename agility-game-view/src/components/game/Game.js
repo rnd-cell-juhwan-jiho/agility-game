@@ -4,7 +4,8 @@ import {AuthContext} from '../../AuthProvider'
 import {useParams, useNavigate} from 'react-router-dom'
 import './Game.css'
 import MessageType from './MessageType'
-import {timer} from 'rxjs'
+import {Subject, of, interval, timer, concat} from 'rxjs'
+import {take, map, switchMapTo} from 'rxjs/operators'
 import UserList from './UserList'
 import LoserList from './LoserList'
 import Chip from './Chip'
@@ -24,23 +25,34 @@ const Game = () => {
 
     const [chips, setChips] = useState({})
 
-    const [bidTimer$, _] = useState(timer(1000))
-    const [timerSubs, setTimerSubs] = useState(null)
+    const [bidEmitter$, _be] = useState(new Subject())
+    const [autoBidCount, setAutoBidCount] = useState(-1)
+    const [autoBidCount$, _abc] = useState(concat(
+            of(10),
+            interval(1000).pipe(take(10), map(t => 9-t))
+        ))
+    // const [autoBidSubs, setAutoBidSubs] = useState(null)
+
+    const [bidTimer$, _bt] = useState(timer(600))
+    const [bidTimerSubs, setBidTimerSubs] = useState(null)
     const [lastBid, setLastBid] = useState(0)
     const [nextBid, setNextBid] = useState(1)
 
-    useEffect(() => {
-        let cleanup = () => {
-            console.log("in cleanup..")
-            if(webSocket === null)
-                return
+    /* [ISSUE] webSocket is null at cleanup execution but connection is still open.. */
 
-            console.log("closing webSocket..")
-            webSocket.close()
-        }
-        return cleanup
-    }, [])
+    // useEffect(() => {
+    //     let cleanup = () => {
+    //         console.log("in cleanup..")
+    //         if(webSocket === null)
+    //             return
 
+    //         console.log("closing webSocket..")
+    //         webSocket.close()
+    //     }
+    //     return cleanup
+    // }, [])
+
+    /* initalize webSocket */
     useEffect(() => {
         if(webSocket !== null)
             return
@@ -51,6 +63,11 @@ const Game = () => {
         ws.onopen = _ => {
             console.log("onopen()..")
             setWebSocket(ws)
+            
+            window.onpopstate = e => {
+                console.log("window.onpopstate..")
+                ws.close()
+            }
             
             let init = JSON.stringify({
                 type: MessageType.USER_IN,
@@ -101,16 +118,33 @@ const Game = () => {
 
     }, [])
 
-    //reset game if game cancels at GameStatus.RUNNING
+    /* reset game if game cancels at GameStatus.RUNNING */
     useEffect(() => {
-        if(status !== GameStatus.VOTING)
-            return
+        if(status === GameStatus.VOTING){
+            setCount(-1)
+            setLastBid(0)
+            setNextBid(1)
+        }
+        else if(status === GameStatus.RUNNING){
+            bidEmitter$.asObservable().pipe(
+                switchMapTo(autoBidCount$)
+            ).subscribe({
+                next: t => {
+                    setAutoBidCount(t)
+                    if(t == 0)
+                        sendNextBid(null)
+                }
+            })
 
-        setCount(-1)
-        setLastBid(0)
-        setNextBid(1)
+            bidEmitter$.next()
+        }
+        else if(status === GameStatus.TERMINATING){
+            console.log("completing bidEmitter$...")
+            bidEmitter$.complete()
+        }
     }, [status])
 
+    /* chip animation */
     useEffect(() => {
         let newChips = {}
         users.forEach(user => newChips[user.username] = false)
@@ -146,30 +180,38 @@ const Game = () => {
         setCount(msg.count)
         if(msg.count === -1)
             setStatus(GameStatus.VOTING)
-        else if(msg.count === 0)
+        else if(msg.count === 0){
             setStatus(GameStatus.RUNNING)
+        }
         else
             setStatus(GameStatus.COUNTDOWN)
     }
 
     const handleBid = (msg) => {
+        /* SET BID TIMER RULE HERE */
+        if(msg.username === username)
+            bidEmitter$.next();
+
+        //1) set nextBid to the highest among incoming bids and current nextBid
         if(msg.bid >= nextBid)
             setNextBid(msg.bid)
         setLastBid(msg.bid)
 
         animateChip(msg.username)
 
-        if(timerSubs !== null){
-            timerSubs.unsubscribe()
-            setTimerSubs(null)
+        //2) if 1s bid timer is ongoing, cancel it
+        if(bidTimerSubs !== null){
+            bidTimerSubs.unsubscribe()
+            setBidTimerSubs(null)
         }
 
-        setTimerSubs(bidTimer$.subscribe({
+        //3) restart bid timer
+        setBidTimerSubs(bidTimer$.subscribe({
             next: _ => {},
             error: err => console.log(err),
             complete: () => {
                 setNextBid(prev => prev+1)
-                setTimerSubs(null)
+                setBidTimerSubs(null)
             }
         }))
     }
@@ -194,7 +236,6 @@ const Game = () => {
         else{
             if(status !== GameStatus.ENDING)
                 setStatus(GameStatus.ENDING)
-            
         }
     }
 
@@ -215,21 +256,43 @@ const Game = () => {
     }
 
     const sendNextBid = (e) => {
-        e.preventDefault()
+        if(e !== null)
+            e.preventDefault()
 
-        if(status !== GameStatus.RUNNING && status !== GameStatus.ENDING)
+        //block if game is not RUNNING nor ENDING, or lost
+        if(status !== GameStatus.RUNNING && status !== GameStatus.ENDING){
+            alert("You can bid only when the game is ongoing.")
             return
+        }
+        else if (lost){
+            alert("Can't bid when you've lost!")
+            return
+        }
 
-        //1) submit submitBid
+        //1) submit nextBid
         webSocket.send(JSON.stringify({
             type: MessageType.BID,
             username: username,
             bid: nextBid
         }))
 
-        //2) increment submitBid
+        //2) increment nextBid
         setNextBid(prev => prev+1)
     }
+
+    // const resetAutoBid = () => {
+    //     if(autoBidSubs !== null){
+    //         console.log("unsubscribing..")
+    //         autoBidSubs.unsubscribe()
+    //     }
+    //     setAutoBidSubs(
+    //         autoBidCount$.subscribe({
+    //             next: t => setAutoBidCount(t),
+    //             error: err => console.log(err),
+    //             complete: () => sendNextBid()
+    //         })
+    //     )
+    // }
 
     return (
         <div className="Game">
@@ -251,10 +314,16 @@ const Game = () => {
                                 {status === GameStatus.TERMINATING && <div className="GameTerminatingGuide">GAME ENDED.</div>}
                                 {lost && <div className="LostGuide">You Lost!</div>}
                                 {status === GameStatus.COUNTDOWN && <div className="Countdown">{count}</div>}
-                            </div>}
+                            </div>
+                        }
                         <div className="Bid">
                             <button onClick={sendNextBid}>Submit Next Bid</button>
-                            <div className="LastBid">Last Bid: {lastBid}</div>
+
+                            {(status === GameStatus.RUNNING || status === GameStatus.ENDING)
+                                && <div className="AutoBidCount">engaging auto-bid in: <span>{autoBidCount}</span>...</div>
+                            }
+                            <br/>
+                            <div className="LastBid"> Last Bid: {lastBid}</div>
                             <div className="NextBid">Next Bid: {nextBid}</div>
                         </div>
                         <div className="ChipsContainer">

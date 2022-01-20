@@ -6,19 +6,30 @@
 }
 
 .GameContainer {
-    padding: 5px;
     display: flex;
     box-sizing: border-box;
+    position: relative;
 }
 
-.GameRunning {
-    position: static;
+.GameContainer > .GameLeftContainer {
     width: calc(100vw - 10em);
+    margin: 0;
+    padding-left: 5px;
 }
 
 .Bid > button {
     box-sizing: border-box;
     margin-top: 0;
+}
+
+.AutoBidCount {
+    color: #888;
+    font-weight: lighter;
+}
+
+.AutoBidCount > span {
+    color: black;
+    font-weight: bold;
 }
 
 .LastBid {
@@ -34,6 +45,7 @@
 .Curtain {
     background-color: rgb(248, 248, 248, 0.8);
     position: absolute;
+    left: 0px;
     height: 100%;
     width: calc(100vw - 10em);
     display: flex;
@@ -52,7 +64,8 @@
 
 .Curtain > .GameTerminatingGuide {
     margin-top: 50px;
-    font-size: 1em;
+    font-size: 1.3em;
+    font-weight: bold;
     opacity: 1;
 }
 
@@ -76,7 +89,7 @@
     text-align: center;
     box-sizing: border-box;
 
-    animation: pop 0.3s;
+    animation: pop 0.4s;
 }
 
 .Chip {
@@ -133,8 +146,14 @@
 }
 
 @keyframes pop {
-    50% {
+    30% {
         border: 1px solid red;
+        color: red;
+        transform: scale(1.2);
+    }
+    60% {
+        border: 1px solid red;
+        color: red;
         transform: scale(1.2);
     }
 }
