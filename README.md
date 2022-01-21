@@ -1,7 +1,11 @@
 # agility-game
 눈치게임
 
-## Game rules
+## Framework/Library Stack
+- Client: ReactJS + Rxjs
+- Back-end: Spring WebFlux(game core)
+
+## Game Rules
 - Game goal: Do Not Lose.
 - You must avoid sending the same bid number, "Next Bid", with other players (almost) at the same time.
 - Multiple players sending the same Next Bid in the time interval of 600ms all become losers. (# of losers >= 2)
