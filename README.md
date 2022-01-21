@@ -5,6 +5,14 @@
 - Game goal: Do Not Lose.
 - You must avoid sending the same bid number, "Next Bid", with other players (almost) at the same time.
 - Multiple players sending the same Next Bid in the time interval of 600ms all become losers. (# of losers >= 2)
+- "Last Bid" is the highest bid in a game until the moment.
+- "Next Bid" is set as soon as any player sends bid with the same number as Last Bid. It then automatically increments after 600ms.
+
+## 게임 규칙
+- '거의' 동시에 같은 숫자를 비딩하는 플레이어들이 패배합니다. (시간 간격: 600ms)
+- '비딩' 이란 "Next Bid"의 숫자를 콜하는 것 혹은 그 숫자를 말합니다.
+- "Last Bid"는 게임 내에서 현재까지 가장 높은 비딩입니다.
+- "Next Bid"는 아무 플레이어가 비딩하는 순간 Last Bid와 함께 같은 숫자가 됩니다. 그리곤 600ms 뒤에 자동으로 +1 만큼 증가합니다.
 
 ## Demo
 
