@@ -150,6 +150,7 @@ const Game = () => {
         }
         else if(status === GameStatus.TERMINATING){
             console.log("completing bidEmitter$...")
+            /* [ISSUE] last subscription does NOT unsubscribe on complete signal, leading to sendNextBid() after game termination */
             bidSubject$.complete()
         }
     }, [status])
@@ -168,7 +169,7 @@ const Game = () => {
     }, [users])
 
     useEffect(() => {
-        if(autoBidCount === 0)
+        if(autoBidCount === 0 && (status === GameStatus.RUNNING || status === GameStatus.ENDING) && !lost)
             sendNextBid()
     }, [autoBidCount])
 
