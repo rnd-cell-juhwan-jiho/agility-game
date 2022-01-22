@@ -7,10 +7,10 @@
 
 ## Game Rules
 - Game goal: Do Not Lose.
-- You must avoid sending the same bid number, "Next Bid", with other players (almost) at the same time.
+- You must avoid sending the same bid number("Next Bid") with other players at the same time.
 - Multiple players sending the same Next Bid in the time interval of 600ms all become losers. (# of losers >= 2)
 - "Last Bid" is the highest bid in a game until the moment.
-- "Next Bid" is set as soon as any player sends bid with the same number as Last Bid. It then automatically increments after 600ms.
+- "Next Bid" is set as soon as any player sends a bid with the same number as Last Bid. It then automatically increments after 600ms.
 
 ## 게임 규칙
 - '거의' 동시에 같은 숫자를 비딩하는 플레이어들이 패배합니다. (시간 간격: 600ms)
