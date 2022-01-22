@@ -7,9 +7,13 @@ const Chip = (props) => {
     }
 
     return (
-        <div className={"Chip" + (props.chips[props.username] ? "Animate" : "")} 
+        <div className={"Chip" + (props.losers.includes(props.username)
+            ? "Lost"
+            : props.chips[props.username] ? "Animate" : "")}
             onAnimationEnd={handleAnimationEnd}>
-            {props.username}
+                <span className="ChipUsername">{props.username}</span>
+                {(props.losers.includes(props.username) || props.username === props.lastBidder)
+                    && <span className="ChipLastBid">{props.lastBid}!</span>}
         </div>
     )
 }

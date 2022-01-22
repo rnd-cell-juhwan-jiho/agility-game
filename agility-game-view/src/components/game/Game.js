@@ -9,6 +9,7 @@ import {take, map, switchMapTo} from 'rxjs/operators'
 import UserList from './UserList'
 import LoserList from './LoserList'
 import Chip from './Chip'
+import Resources from '../../Resources'
 
 // const bidNotifier$ = bidSubject$.asObservable().pipe(switchMapTo(autoBidCount$))
 
@@ -30,7 +31,7 @@ const Game = () => {
     const [count, setCount] = useState(-1)  //countdown
     const [lost, setLost] = useState(false)
 
-    const [chips, setChips] = useState({})
+    const [chips, setChips] = useState({})  //{"joe": false, "doe": true} then animate "doe"
 
     const [bidSubject$, _bs] = useState(new Subject())
     const [bidNotifier$, setBidNotifier$] = useState(null)
@@ -43,6 +44,7 @@ const Game = () => {
     const [bidRefreshTimer$, _bt] = useState(timer(600))
     const [bidTimerSubs, setBidTimerSubs] = useState(null)
     const [lastBid, setLastBid] = useState(0)
+    const [lastBidder, setLastBidder] = useState("")
     const [nextBid, setNextBid] = useState(1)
 
     /* [ISSUE] webSocket is null at cleanup execution but connection is still open.. */
@@ -64,7 +66,7 @@ const Game = () => {
         if(webSocket !== null)
             return
 
-        let url = "ws://localhost:8080/game?game-id=" + gameId + "&username=" + username
+        let url = "ws://"+Resources.HOSTNAME+":"+Resources.PORT+"/game?game-id=" + gameId + "&username=" + username
         const ws = new WebSocket(url)
 
         ws.onopen = _ => {
@@ -214,6 +216,8 @@ const Game = () => {
         if(msg.username === username)
             bidSubject$.next();
 
+        setLastBidder(msg.username)
+
         //1) set nextBid to the highest among incoming bids and current nextBid
         if(msg.bid >= nextBid)
             setNextBid(msg.bid)
@@ -316,7 +320,9 @@ const Game = () => {
                     ) &&
                         <div className="Curtain">
                             {status === GameStatus.TERMINATING && <div className="GameTerminatingGuide">GAME ENDED.</div>}
-                            {lost && <div className="LostGuide">You Lose!</div>}
+                            {lost
+                                ? <div className="LostGuide">You Lose!</div>
+                                : status === GameStatus.TERMINATING && <div className="WinGuide">Well Done!</div>}
                             {status === GameStatus.COUNTDOWN && <div className="Countdown">{count}</div>}
                         </div>
                     }
@@ -331,7 +337,17 @@ const Game = () => {
                         <div className="NextBid">Next Bid: {nextBid}</div>
                     </div>
                     <div className="ChipsContainer">
-                        {users.map((user, idx) => <Chip key={idx} username={user.username} chips={chips} setChips={setChips}/>)}
+                        {users.map((user, idx) => 
+                            <Chip 
+                                key={idx} 
+                                username={user.username} 
+                                chips={chips} 
+                                setChips={setChips} 
+                                lastBid={lastBid}
+                                lastBidder = {lastBidder}
+                                losers={losers}
+                            />
+                        )}
                     </div>
                 </div>
                 <div className="GameRightContainer">

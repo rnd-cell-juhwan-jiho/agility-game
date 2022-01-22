@@ -5,6 +5,7 @@ import './Games.css'
 import Spinner from './spinner/Spinner'
 import NetStat from './NetStat'
 import GameStatus from './game/GameStatus'
+import Resources from '../Resources'
 
 // const test = [{
 //     game_id: "123",
@@ -18,8 +19,8 @@ const Games = (props) => {
     const [initialized, setInitialized] = useState(false)
     const [games, setGames] = useState([])
     const [fetchStatus, setFetchStatus] = useState(NetStat.IDLE)
-    const gamesUrl = "http://localhost:8080/games"
-    const gameStatusUrl = "http://localhost:8080/game/status?game-id="
+    const gamesUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/games"
+    const gameStatusUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/game/status?game-id="
 
     useEffect(() => {
         if(!initialized){
