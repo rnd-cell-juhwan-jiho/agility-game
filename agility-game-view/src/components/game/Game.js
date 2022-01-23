@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useContext} from 'react'
 import GameStatus from './GameStatus'
 import {AuthContext} from '../../AuthProvider'
+import {NetworkContext} from '../../NetworkProvider'
 import {useParams, useNavigate} from 'react-router-dom'
 import './Game.css'
 import MessageType from './MessageType'
@@ -11,19 +12,13 @@ import LoserList from './LoserList'
 import Chip from './Chip'
 import Resources from '../../Resources'
 
-// const bidNotifier$ = bidSubject$.asObservable().pipe(switchMapTo(autoBidCount$))
-
-// const autoBidCount$ = concat(
-//     of(10),
-//     interval(1000).pipe(take(10), map(t => 9-t))
-// )
-
 const Game = () => {
 
     const navigate = useNavigate()
     const {gameId} = useParams()
     const {username} = useContext(AuthContext)
-    const [webSocket, setWebSocket] = useState(null)
+    const {webSocket, setWebSocket} = useContext(NetworkContext)
+
     const [users, setUsers] = useState([])
     const [nextReady, setNextReady] = useState(true)
     const [losers, setLosers] = useState([])
@@ -63,9 +58,9 @@ const Game = () => {
 
     /* initalize webSocket */
     useEffect(() => {
-        if(webSocket !== null)
+        if(webSocket !== null && webSocket !== undefined)
             return
-
+        
         let url = "ws://"+Resources.HOSTNAME+":"+Resources.PORT+"/game?game-id=" + gameId + "&username=" + username
         const ws = new WebSocket(url)
 
