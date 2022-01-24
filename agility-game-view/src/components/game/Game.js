@@ -26,7 +26,7 @@ const Game = () => {
     const [count, setCount] = useState(-1)  //countdown
     const [lost, setLost] = useState(false)
 
-    const [chips, setChips] = useState({})  //{"joe": false, "doe": true} then animate "doe"
+    const [chips, setChips] = useState({})  //{"joe": false, "doe": true, ...} then animate "doe"
 
     const [bidSubject$, _bs] = useState(new Subject())
     const [bidNotifier$, setBidNotifier$] = useState(null)
