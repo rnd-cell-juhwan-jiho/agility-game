@@ -7,11 +7,12 @@ import Game from './components/game/Game'
 import GameContextProvider from './GameContextProvider'
 import AuthProvider from './AuthProvider'
 import RequireAuth from './RequireAuth'
+import NetworkProvider from './NetworkProvider'
 
 function App() {
 
   return (
-    <AuthProvider><GameContextProvider>
+    <AuthProvider><GameContextProvider><NetworkProvider>
 
       <div className="App">
         <Header/>
@@ -33,7 +34,7 @@ function App() {
         </Router>
       </div>
 
-    </GameContextProvider></AuthProvider>
+      </NetworkProvider></GameContextProvider></AuthProvider>
   );
 }
 

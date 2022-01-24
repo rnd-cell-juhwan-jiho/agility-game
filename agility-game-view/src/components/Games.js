@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useContext} from 'react'
 import { useNavigate } from 'react-router-dom'
 import GameThumbnail from './GameThumbnail'
 import './Games.css'
@@ -6,28 +6,27 @@ import Spinner from './spinner/Spinner'
 import NetStat from './NetStat'
 import GameStatus from './game/GameStatus'
 import Resources from '../Resources'
-
-// const test = [{
-//     game_id: "123",
-//     status: "VOTING",
-//     size: 0
-// }]
+import { NetworkContext } from '../NetworkProvider'
 
 const Games = (props) => {
 
+    const {webSocket, setWebSocket} = useContext(NetworkContext)
     const navigate = useNavigate()
-    const [initialized, setInitialized] = useState(false)
     const [games, setGames] = useState([])
     const [fetchStatus, setFetchStatus] = useState(NetStat.IDLE)
     const gamesUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/games"
     const gameStatusUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/game/status?game-id="
 
     useEffect(() => {
-        if(!initialized){
-            setInitialized(true)
-            fetchGames()
+        fetchGames()
+
+        if(webSocket !== null && webSocket !== undefined){
+            console.log(typeof webSocket)
+            if(webSocket.readyState !== 3)  //0:CONNECTING, 1:OPEN, 2:CLOSING, 3:CLOSED
+                webSocket.close()
+            setWebSocket(null)
         }
-    })
+    }, [])
 
     const fetchGames = (e) => {
         setFetchStatus(NetStat.LOADING)
