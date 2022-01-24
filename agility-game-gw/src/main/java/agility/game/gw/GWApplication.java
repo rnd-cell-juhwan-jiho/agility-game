@@ -17,11 +17,11 @@ public class GWApplication {
     public RouteLocator myRoutes(RouteLocatorBuilder builder){
         return builder.routes()
                 .route(p -> p.path("/games").and().method(HttpMethod.GET)
-                        .uri("http://localhost:8081/games")
+                        .uri("http://localhost:8079/games")
                 ).route(p -> p.path("/game/status").and().method(HttpMethod.GET)
-                        .uri("http://localhost:8081/game/status")
+                        .uri("http://localhost:8079/game/status")
                 ).route(p -> p.path("/game")
-                        .uri("ws://localhost:8081/game")
+                        .uri("ws://localhost:8079/game")
                 ).build();
     }
 }

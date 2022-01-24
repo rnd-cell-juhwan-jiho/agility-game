@@ -21,13 +21,13 @@ const Games = (props) => {
         fetchGames()
 
         if(webSocket !== null && webSocket !== undefined){
-            if(webSocket.readyState !== 3)  //0:CONNECTING, 1:OPEN, 2:CLOSING, 3:CLOSED
+            if(webSocket.readyState !== 3 && webSocket.readyState !== 2)  //0:CONNECTING, 1:OPEN, 2:CLOSING, 3:CLOSED
                 webSocket.close()
             setWebSocket(null)
         }
     }, [])
 
-    const fetchGames = (e) => {
+    const fetchGames = () => {
         setFetchStatus(NetStat.LOADING)
 
         fetch(gamesUrl, {
