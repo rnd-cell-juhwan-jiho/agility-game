@@ -1,14 +1,7 @@
 import React from 'react'
-import {useNavigate} from 'react-router-dom'
-import GameStatus from './game/GameStatus'
-
 const GameThumbnail = (props) => {
 
-    const navigate = useNavigate()
-
     const handleClick = (e) => {
-        console.log(e);
-        
         props.tryJoinGame(props.game.game_id)
     }
 

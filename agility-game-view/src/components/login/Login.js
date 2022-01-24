@@ -17,7 +17,6 @@ const Login = (props) => {
         }
 
         setUsername(input)
-        console.log('submitting')
     }
 
     if(username !== null)

@@ -33,15 +33,6 @@ public class GameWebConfig implements WebFluxConfigurer{
     }
 
     @Bean
-    public HandlerMapping handlerMapping(WebSocketHandler handler){
-
-        Map<String, WebSocketHandler> mapping = new HashMap<>();
-        mapping.put("/game", handler);
-
-        return new SimpleUrlHandlerMapping(mapping, -1);
-    }
-
-    @Bean
     public WebSocketHandlerAdapter handlerAdapter(WebSocketService webSocketService) {
         return new WebSocketHandlerAdapter(webSocketService);
     }

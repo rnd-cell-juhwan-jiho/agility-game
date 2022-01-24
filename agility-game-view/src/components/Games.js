@@ -21,7 +21,6 @@ const Games = (props) => {
         fetchGames()
 
         if(webSocket !== null && webSocket !== undefined){
-            console.log(typeof webSocket)
             if(webSocket.readyState !== 3)  //0:CONNECTING, 1:OPEN, 2:CLOSING, 3:CLOSED
                 webSocket.close()
             setWebSocket(null)
@@ -38,12 +37,9 @@ const Games = (props) => {
             }
         }).then(response => response.json())
         .then(data => {
-            console.log(data)
             setGames(data.games)
             setFetchStatus(NetStat.IDLE)
         }).catch(error => {
-            console.log("=== ERROR ===")
-            console.log(error)
             setFetchStatus(NetStat.ERROR)
         })
     }

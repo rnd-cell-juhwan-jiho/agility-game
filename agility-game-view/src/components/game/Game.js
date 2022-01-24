@@ -65,11 +65,9 @@ const Game = () => {
         const ws = new WebSocket(url)
 
         ws.onopen = _ => {
-            console.log("onopen()..")
             setWebSocket(ws)
             
             window.onpopstate = e => {
-                console.log("window.onpopstate..")
                 ws.close()
             }
             
@@ -81,9 +79,7 @@ const Game = () => {
         }
 
         ws.onmessage = e => {
-            console.log("onmessage()..")
             let msg = JSON.parse(e.data)
-            console.log(msg)
             
             switch(msg.type){
                 case MessageType.INIT:
@@ -111,12 +107,10 @@ const Game = () => {
         }
 
         ws.onclose = e => {
-            console.log(e)
             navigate(-1)
         }
 
         ws.onerror = err => {
-            console.log(err.message)
             navigate(-1)
         }
 
@@ -131,22 +125,13 @@ const Game = () => {
         }
         else if(status === GameStatus.RUNNING){
             bidNotifier$.subscribe({
-                next: t => {
-                    console.log("next: "+t+", nextBid="+nextBid)
-                    setAutoBidCount(t)
-                    /* nextBid is always viewed as '1' so DO NOT call sendNextBid() here */
-                        // if(t == 0){
-                        // console.log("auto-bidding..")
-                        // sendNextBid()
-                    // }
-                },
-                complete: ()=>console.log("bidNotifier$ completes..")
+                next: t => {setAutoBidCount(t)}
+                // complete: ()=>console.log("bidNotifier$ completes..")
             })
 
             bidSubject$.next()
         }
         else if(status === GameStatus.TERMINATING){
-            console.log("completing bidEmitter$...")
             /* [ISSUE] last subscription does NOT unsubscribe on complete signal, leading to sendNextBid() after game termination */
             bidSubject$.complete()
         }
@@ -229,7 +214,7 @@ const Game = () => {
         //3) (re)start bid timer
         setBidTimerSubs(bidRefreshTimer$.subscribe({
             next: _ => {},
-            error: err => console.log(err),
+            // error: err => console.log(err),
             complete: () => {
                 setNextBid(prev => prev+1)
                 setBidTimerSubs(null)
@@ -284,8 +269,6 @@ const Game = () => {
             alert("Can't bid when you've lost!")
             return
         }
-
-        console.log("in sendNextBid() with nextBid="+nextBid)
 
         //1) submit nextBid
         webSocket.send(JSON.stringify({
