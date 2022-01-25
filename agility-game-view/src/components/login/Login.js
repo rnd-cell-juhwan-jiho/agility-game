@@ -1,5 +1,5 @@
 import React, {useContext} from 'react'
-import { AuthContext } from '../../AuthProvider'
+import { AuthContext } from '../contexts/AuthProvider'
 import {Navigate} from 'react-router-dom'
 import './Login.css'
 
@@ -17,7 +17,6 @@ const Login = (props) => {
         }
 
         setUsername(input)
-        console.log('submitting')
     }
 
     if(username !== null)

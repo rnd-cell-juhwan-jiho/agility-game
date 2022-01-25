@@ -1,6 +1,7 @@
 package org.rnd.agility.game.handler;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.rnd.agility.game.domain.game.GameManager;
 import org.rnd.agility.game.domain.join.dto.GameStatus;
 import org.rnd.agility.game.domain.join.dto.Games;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class GameApiHandler {
 
     private final GameManager gameManager;

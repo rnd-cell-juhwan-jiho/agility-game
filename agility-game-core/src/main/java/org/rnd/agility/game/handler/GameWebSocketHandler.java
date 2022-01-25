@@ -16,8 +16,6 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -34,8 +32,7 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
-        //upon connection, 1) wait for INIT message from the client
-        //2) then send back INIT message containing list of users
+        //send INIT message containing list of users on connection
 
         var queryMap = getQueryMap(session.getHandshakeInfo().getUri().getQuery());
         var gameId = queryMap.get("game-id");
@@ -50,13 +47,37 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
         Consumer<WebSocketMessage> onNextConsumer = (wsm) -> {
             var msg = wsm.getPayloadAsText();
-            log.info(msg);
+            log.info("handshakeInfo={} msg={}", session.getHandshakeInfo(),msg);
             try {
                 String type = this.mapper.reader().readTree(msg).get("type").asText();
 
                 game.processMessage(type, msg);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
+            }
+        };
+
+        //ERROR when tcp RST=1
+        Consumer<Throwable> onErrorConsumer = (e) -> {
+            log.error(e.toString());
+
+            //multicast USER_OUT
+            String userOut = mapperWriteAsString(new UserEntrance(DtoType.USER_OUT, username, false));
+            try {
+                game.processMessage(DtoType.USER_OUT, userOut);
+            } catch (JsonProcessingException jpe) {
+                log.error(jpe.toString());
+            }
+
+            //if last player closes connection
+            if(game.getUsers().isEmpty()) {
+                log.info("=== Terminating game [ {} ] ===", gameId);
+                this.gameManager.removeGame(gameId);
+            }
+            //if RUNNING game should be canceled back to VOTING
+            else if(game.isCountingDown() && game.getUsers().size() < 3){
+                log.info("=== Cancelling game [ {} ] ===", gameId);
+                game.cancelCountdown();
             }
         };
 
@@ -84,7 +105,7 @@ public class GameWebSocketHandler implements WebSocketHandler {
         session.receive()
                 .subscribe(
                         onNextConsumer,
-                        Throwable::printStackTrace,
+                        onErrorConsumer,
                         onCompleteConsumer
                 );
 

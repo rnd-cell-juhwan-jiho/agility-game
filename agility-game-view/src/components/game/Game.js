@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useContext} from 'react'
 import GameStatus from './GameStatus'
-import {AuthContext} from '../../AuthProvider'
-import {NetworkContext} from '../../NetworkProvider'
+import {AuthContext} from '../contexts/AuthProvider'
+import {NetworkContext} from '../contexts/NetworkProvider'
 import {useParams, useNavigate} from 'react-router-dom'
 import './Game.css'
 import MessageType from './MessageType'
@@ -56,23 +56,12 @@ const Game = () => {
     //     return cleanup
     // }, [])
 
-    /* initalize webSocket */
+    /* initialize webSocket */
     useEffect(() => {
-        if(webSocket !== null && webSocket !== undefined)
-            return
-        
         let url = "ws://"+Resources.HOSTNAME+":"+Resources.PORT+"/game?game-id=" + gameId + "&username=" + username
         const ws = new WebSocket(url)
-
-        ws.onopen = _ => {
-            console.log("onopen()..")
+        ws.onopen = ev => {
             setWebSocket(ws)
-            
-            window.onpopstate = e => {
-                console.log("window.onpopstate..")
-                ws.close()
-            }
-            
             let init = JSON.stringify({
                 type: MessageType.USER_IN,
                 username: username
@@ -81,9 +70,8 @@ const Game = () => {
         }
 
         ws.onmessage = e => {
-            console.log("onmessage()..")
             let msg = JSON.parse(e.data)
-            console.log(msg)
+            // console.log(msg)
             
             switch(msg.type){
                 case MessageType.INIT:
@@ -110,14 +98,12 @@ const Game = () => {
             }
         }
 
-        ws.onclose = e => {
-            console.log(e)
-            navigate(-1)
+        ws.onclose = _ => {
+            // console.log("onclose...")
         }
 
         ws.onerror = err => {
-            console.log(err.message)
-            navigate(-1)
+            // console.log("error: "+err)
         }
 
     }, [])
@@ -131,22 +117,13 @@ const Game = () => {
         }
         else if(status === GameStatus.RUNNING){
             bidNotifier$.subscribe({
-                next: t => {
-                    console.log("next: "+t+", nextBid="+nextBid)
-                    setAutoBidCount(t)
-                    /* nextBid is always viewed as '1' so DO NOT call sendNextBid() here */
-                        // if(t == 0){
-                        // console.log("auto-bidding..")
-                        // sendNextBid()
-                    // }
-                },
-                complete: ()=>console.log("bidNotifier$ completes..")
+                next: t => {setAutoBidCount(t)}
+                // complete: ()=>console.log("bidNotifier$ completes..")
             })
 
             bidSubject$.next()
         }
         else if(status === GameStatus.TERMINATING){
-            console.log("completing bidEmitter$...")
             /* [ISSUE] last subscription does NOT unsubscribe on complete signal, leading to sendNextBid() after game termination */
             bidSubject$.complete()
         }
@@ -229,7 +206,7 @@ const Game = () => {
         //3) (re)start bid timer
         setBidTimerSubs(bidRefreshTimer$.subscribe({
             next: _ => {},
-            error: err => console.log(err),
+            // error: err => console.log(err),
             complete: () => {
                 setNextBid(prev => prev+1)
                 setBidTimerSubs(null)
@@ -262,6 +239,11 @@ const Game = () => {
     }
 
     const sendReady = () => {
+        if(webSocketClosed()){
+            alert("Connection closed :(")
+            navigate(-1)
+        }
+
         if(status !== GameStatus.VOTING && status !== GameStatus.COUNTDOWN)
             return
             
@@ -274,6 +256,10 @@ const Game = () => {
     }
 
     const sendNextBid = () => {
+        if(webSocketClosed()){
+            alert("Connection closed :(")
+            navigate(-1)
+        }
 
         //block if game is not RUNNING nor ENDING, or lost
         if(status !== GameStatus.RUNNING && status !== GameStatus.ENDING){
@@ -285,8 +271,6 @@ const Game = () => {
             return
         }
 
-        console.log("in sendNextBid() with nextBid="+nextBid)
-
         //1) submit nextBid
         webSocket.send(JSON.stringify({
             type: MessageType.BID,
@@ -296,6 +280,10 @@ const Game = () => {
 
         //2) increment nextBid
         // setNextBid(prev => prev+1)
+    }
+
+    const webSocketClosed = () => {
+        return webSocket.readyState === 2 || webSocket.readyState === 3
     }
 
     return (
