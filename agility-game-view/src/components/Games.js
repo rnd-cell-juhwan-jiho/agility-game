@@ -16,7 +16,7 @@ const Games = (props) => {
     const gameStatusUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/game/status?game-id="
 
     useEffect(() => {
-        console.log("useEffect in Games..")
+        // console.log("useEffect in Games..")
         fetchGames()
     }, [])
 

@@ -16,8 +16,8 @@ public class GameManager {
     private final ConcurrentMap<String, Game> games = new ConcurrentHashMap<>();    //gameId:game
     private final ObjectMapper mapper;
 
-    public Game getGame(String roomId){
-        return games.get(roomId);
+    public Game getGame(String gameId){
+        return games.get(gameId);
     }
 
     public void createGame(String gameId){
@@ -27,11 +27,11 @@ public class GameManager {
         games.put(gameId, game);
     }
 
-    public boolean gameExists(String roomId){
-        return games.containsKey(roomId);
+    public boolean gameExists(String gameId){
+        return games.containsKey(gameId);
     }
 
-    public void removeGame(String roomId){
-        games.remove(roomId);
+    public void removeGame(String gameId){
+        games.remove(gameId);
     }
 }

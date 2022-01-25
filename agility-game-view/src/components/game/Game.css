@@ -113,6 +113,7 @@
     box-sizing: border-box;
 
     animation: pop 0.4s;
+    -webkit-animation: pop 0.4s; /* Safari */
 }
 
 .Chip {

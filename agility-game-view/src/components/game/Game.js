@@ -71,7 +71,7 @@ const Game = () => {
 
         ws.onmessage = e => {
             let msg = JSON.parse(e.data)
-            console.log(msg)
+            // console.log(msg)
             
             switch(msg.type){
                 case MessageType.INIT:
@@ -99,11 +99,11 @@ const Game = () => {
         }
 
         ws.onclose = _ => {
-            console.log("onclose...")
+            // console.log("onclose...")
         }
 
         ws.onerror = err => {
-            console.log("error: "+err)
+            // console.log("error: "+err)
         }
 
     }, [])
