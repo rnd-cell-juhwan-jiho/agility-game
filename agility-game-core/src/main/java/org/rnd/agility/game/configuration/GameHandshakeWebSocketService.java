@@ -40,7 +40,6 @@ public class GameHandshakeWebSocketService extends HandshakeWebSocketService {
             if(!gameManager.getGame(gameId).isVoting())
                 return Mono.error(new IllegalAccessException("Unable to join this game right now."));
         }
-//        gameManager.getGame(gameId).getUsers().put(username, false);
 
         return super.handleRequest(exchange, handler);
     }

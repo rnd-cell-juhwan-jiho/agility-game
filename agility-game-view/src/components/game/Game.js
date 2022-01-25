@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useContext} from 'react'
 import GameStatus from './GameStatus'
-import {AuthContext} from '../../AuthProvider'
-import {NetworkContext} from '../../NetworkProvider'
+import {AuthContext} from '../contexts/AuthProvider'
+import {NetworkContext} from '../contexts/NetworkProvider'
 import {useParams, useNavigate} from 'react-router-dom'
 import './Game.css'
 import MessageType from './MessageType'
@@ -56,21 +56,12 @@ const Game = () => {
     //     return cleanup
     // }, [])
 
-    /* initalize webSocket */
+    /* initialize webSocket */
     useEffect(() => {
-        if(webSocket !== null && webSocket !== undefined)
-            return
-        
         let url = "ws://"+Resources.HOSTNAME+":"+Resources.PORT+"/game?game-id=" + gameId + "&username=" + username
         const ws = new WebSocket(url)
-
-        ws.onopen = _ => {
+        ws.onopen = ev => {
             setWebSocket(ws)
-            
-            window.onpopstate = e => {
-                ws.close()
-            }
-            
             let init = JSON.stringify({
                 type: MessageType.USER_IN,
                 username: username
@@ -80,6 +71,7 @@ const Game = () => {
 
         ws.onmessage = e => {
             let msg = JSON.parse(e.data)
+            console.log(msg)
             
             switch(msg.type){
                 case MessageType.INIT:
@@ -106,12 +98,12 @@ const Game = () => {
             }
         }
 
-        ws.onclose = e => {
-            navigate(-1)
+        ws.onclose = _ => {
+            console.log("onclose...")
         }
 
         ws.onerror = err => {
-            navigate(-1)
+            console.log("error: "+err)
         }
 
     }, [])
@@ -247,6 +239,11 @@ const Game = () => {
     }
 
     const sendReady = () => {
+        if(webSocketClosed()){
+            alert("Connection closed :(")
+            navigate(-1)
+        }
+
         if(status !== GameStatus.VOTING && status !== GameStatus.COUNTDOWN)
             return
             
@@ -259,6 +256,10 @@ const Game = () => {
     }
 
     const sendNextBid = () => {
+        if(webSocketClosed()){
+            alert("Connection closed :(")
+            navigate(-1)
+        }
 
         //block if game is not RUNNING nor ENDING, or lost
         if(status !== GameStatus.RUNNING && status !== GameStatus.ENDING){
@@ -279,6 +280,10 @@ const Game = () => {
 
         //2) increment nextBid
         // setNextBid(prev => prev+1)
+    }
+
+    const webSocketClosed = () => {
+        return webSocket.readyState === 2 || webSocket.readyState === 3
     }
 
     return (

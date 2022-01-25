@@ -1,4 +1,4 @@
-import {useState, useEffect, useContext} from 'react'
+import {useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 import GameThumbnail from './GameThumbnail'
 import './Games.css'
@@ -6,11 +6,9 @@ import Spinner from './spinner/Spinner'
 import NetStat from './NetStat'
 import GameStatus from './game/GameStatus'
 import Resources from '../Resources'
-import { NetworkContext } from '../NetworkProvider'
 
 const Games = (props) => {
 
-    const {webSocket, setWebSocket} = useContext(NetworkContext)
     const navigate = useNavigate()
     const [games, setGames] = useState([])
     const [fetchStatus, setFetchStatus] = useState(NetStat.IDLE)
@@ -18,13 +16,8 @@ const Games = (props) => {
     const gameStatusUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/game/status?game-id="
 
     useEffect(() => {
+        console.log("useEffect in Games..")
         fetchGames()
-
-        if(webSocket !== null && webSocket !== undefined){
-            if(webSocket.readyState !== 3 && webSocket.readyState !== 2)  //0:CONNECTING, 1:OPEN, 2:CLOSING, 3:CLOSED
-                webSocket.close()
-            setWebSocket(null)
-        }
     }, [])
 
     const fetchGames = () => {
@@ -47,13 +40,13 @@ const Games = (props) => {
     const handleSubmit = e => {
         e.preventDefault()
 
-        let gameId = e.currentTarget.gameIdInput.value
-        if(gameId === ""){
+        let gid = e.currentTarget.gameIdInput.value
+        if(gid === ""){
             alert("Game ID can't be nothing!")
             return
         }
 
-        tryJoinGame(gameId)
+        tryJoinGame(gid)
     }
 
     const tryJoinGame = gameId => {

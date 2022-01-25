@@ -16,8 +16,6 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -34,8 +32,8 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
-        //upon connection, 1) wait for INIT message from the client
-        //2) then send back INIT message containing list of users
+        //upon connection,
+        //send INIT message containing list of users
 
         var queryMap = getQueryMap(session.getHandshakeInfo().getUri().getQuery());
         var gameId = queryMap.get("game-id");

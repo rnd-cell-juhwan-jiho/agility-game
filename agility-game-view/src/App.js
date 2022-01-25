@@ -4,19 +4,21 @@ import Header from './components/header/Header'
 import Login from './components/login/Login'
 import Games from './components/Games'
 import Game from './components/game/Game'
-import GameContextProvider from './GameContextProvider'
-import AuthProvider from './AuthProvider'
-import RequireAuth from './RequireAuth'
-import NetworkProvider from './NetworkProvider'
+import GameContextProvider from './components/contexts/GameContextProvider'
+import AuthProvider from './components/contexts/AuthProvider'
+import RequireAuth from './components/contexts/RequireAuth'
+import NetworkProvider from './components/contexts/NetworkProvider'
 
 function App() {
 
   return (
+    <Router>
+
     <AuthProvider><GameContextProvider><NetworkProvider>
 
       <div className="App">
         <Header/>
-        <Router>
+        {/* <Router> */}
           <Routes>
             <Route path="/" element={<Navigate to="/games"/>}/>
             <Route path="/login" element={<Login/>}/>
@@ -31,10 +33,12 @@ function App() {
               </RequireAuth>
             }/>
           </Routes>
-        </Router>
+        {/* </Router> */}
       </div>
 
       </NetworkProvider></GameContextProvider></AuthProvider>
+
+      </Router>
   );
 }
 
