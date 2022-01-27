@@ -9,6 +9,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/* For pre-join operations during handshake */
 @Service
 public class GameHandshakeWebSocketService extends HandshakeWebSocketService {
 

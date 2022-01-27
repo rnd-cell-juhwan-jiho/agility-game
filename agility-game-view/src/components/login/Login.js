@@ -20,7 +20,7 @@ const Login = (props) => {
     }
 
     if(username !== null)
-        return <Navigate to="/games"/>
+        return <Navigate to="/agility-game/games"/>
 
     return (
         <div className="Login">
