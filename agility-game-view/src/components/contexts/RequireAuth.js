@@ -10,7 +10,7 @@ const RequireAuth = (props) => {
         <div>
         {username 
             ? <>{props.children}</>
-            : <Navigate to="/login"/>
+            : <Navigate to="/agility-game/login"/>
         }
         </div>
     )

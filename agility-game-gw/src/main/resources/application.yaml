@@ -1,3 +1,20 @@
+spring:
+  application:
+    name: agility-game-gw
+  cloud:
+    gateway:
+      routes:
+        - id: agility-game-core
+          uri: http://localhost:8080
+          predicates:
+            - Path=/agility-game-core/**
+
+
+        - id: agility-game-view
+          uri: http://localhost:3000
+          predicates:
+            - Path=/agility-game/**
+
 logging:
   level:
     root: debug

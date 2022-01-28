@@ -22,12 +22,11 @@ public class LoggingWebFilter implements WebFilter {
         var reqContentTypeSub = reqContentType != null ? reqContentType.getSubtype() : null;
 
         var resp = exchange.getResponse();
-        var respStatus = resp.getRawStatusCode();
 
         log.info("[REQ] remote={} method={} uri={} content-type={}/{}",
                 remote, method, reqUri, reqContentTypeMain, reqContentTypeSub);
         resp.beforeCommit(()->{
-            log.info("[RES] remote={} status={} uri={}", remote, respStatus, reqUri);
+            log.info("[RES] remote={} status={} uri={}", remote, exchange.getResponse().getRawStatusCode(), reqUri);
             return Mono.empty();
         });
 

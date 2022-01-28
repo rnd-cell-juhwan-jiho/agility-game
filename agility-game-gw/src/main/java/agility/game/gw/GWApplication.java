@@ -13,15 +13,17 @@ public class GWApplication {
         SpringApplication.run(GWApplication.class);
     }
 
-    @Bean
+//    @Bean
     public RouteLocator myRoutes(RouteLocatorBuilder builder){
         return builder.routes()
-                .route(p -> p.path("/games").and().method(HttpMethod.GET)
-                        .uri("http://localhost:8079/games")
+                .route(p -> p.path("/agility-game/*").and().method(HttpMethod.GET)
+                        .uri("http://localhost:3000")
+                ).route(p -> p.path("/games").and().method(HttpMethod.GET)
+                        .uri("http://localhost:8080/games")
                 ).route(p -> p.path("/game/status").and().method(HttpMethod.GET)
-                        .uri("http://localhost:8079/game/status")
+                        .uri("http://localhost:8080/game/status")
                 ).route(p -> p.path("/game")
-                        .uri("ws://localhost:8079/game")
+                        .uri("ws://localhost:8080/game")
                 ).build();
     }
 }

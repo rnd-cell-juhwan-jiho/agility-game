@@ -24,16 +24,17 @@ public class GameApiRouter {
     @Bean
     RouterFunction<ServerResponse> route(GameApiHandler apiHandler){
         return RouterFunctions.route()
-                .GET("/games", accept(MediaType.APPLICATION_JSON), apiHandler::getGames)
-                .GET("/game/status", accept(MediaType.APPLICATION_JSON), apiHandler::getGameStatus)
-                .build();
+                .path("/agility-game-core", builder -> builder
+                        .GET("/games", accept(MediaType.APPLICATION_JSON), apiHandler::getGames)
+                        .GET("/game/status", accept(MediaType.APPLICATION_JSON), apiHandler::getGameStatus)
+                ).build();
     }
 
     @Bean
     public HandlerMapping handlerMapping(WebSocketHandler handler){
 
         Map<String, WebSocketHandler> mapping = new HashMap<>();
-        mapping.put("/game", handler);
+        mapping.put("/agility-game-core/game", handler);
 
         return new SimpleUrlHandlerMapping(mapping, -1);
     }

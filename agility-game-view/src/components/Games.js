@@ -12,8 +12,8 @@ const Games = (props) => {
     const navigate = useNavigate()
     const [games, setGames] = useState([])
     const [fetchStatus, setFetchStatus] = useState(NetStat.IDLE)
-    const gamesUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/games"
-    const gameStatusUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/game/status?game-id="
+    const gamesUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/agility-game-core/games"
+    const gameStatusUrl = "http://"+Resources.HOSTNAME+":"+Resources.PORT+"/agility-game-core/game/status?game-id="
 
     useEffect(() => {
         // console.log("useEffect in Games..")
@@ -58,12 +58,12 @@ const Games = (props) => {
         }).then(response => {
             if(response.status === 404){
                 alert("Game not found. Creating new game..")
-                navigate("/game/"+gameId)
+                navigate("../game/"+gameId)
             }
             else{
                 response.json().then(data => {
                     if(data.status === GameStatus.VOTING)
-                        navigate("/game/"+gameId)
+                        navigate("../game/"+gameId)
                     else
                         alert("You can only join games when it's VOTING.\n\nCurrent status: "+data.status)
                 })

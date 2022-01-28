@@ -58,7 +58,7 @@ const Game = () => {
 
     /* initialize webSocket */
     useEffect(() => {
-        let url = "ws://"+Resources.HOSTNAME+":"+Resources.PORT+"/game?game-id=" + gameId + "&username=" + username
+        let url = "ws://"+Resources.HOSTNAME+":"+Resources.PORT+"/agility-game-core/game?game-id=" + gameId + "&username=" + username
         const ws = new WebSocket(url)
         ws.onopen = ev => {
             setWebSocket(ws)
